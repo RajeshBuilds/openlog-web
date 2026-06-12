@@ -3,11 +3,8 @@ import { notFound } from "next/navigation";
 import { Smartphone } from "lucide-react";
 
 import { AppHeader } from "@/components/app-header";
-import { Inspector } from "@/components/inspector/Inspector";
-import { NavigationFlow } from "@/components/inspector/NavigationFlow";
-import { Player } from "@/components/player/Player";
+import { SessionWorkspace } from "@/components/session/SessionWorkspace";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatMs } from "@/lib/format";
 import { getStorage } from "@/lib/storage";
 
@@ -74,27 +71,7 @@ export default async function SessionPage({
         </nav>
       </AppHeader>
 
-      <main className="grid min-h-0 w-full flex-1 gap-4 px-6 py-4 lg:grid-cols-2">
-        <Tabs
-          defaultValue="events"
-          className="flex min-h-0 flex-col gap-3 rounded-xl border bg-card p-3 shadow-xs"
-        >
-          <TabsList>
-            <TabsTrigger value="events">Events</TabsTrigger>
-            <TabsTrigger value="navigation">Navigation</TabsTrigger>
-          </TabsList>
-          <TabsContent value="events" className="min-h-0 flex-1">
-            <Inspector />
-          </TabsContent>
-          <TabsContent value="navigation" className="min-h-0 flex-1">
-            <NavigationFlow />
-          </TabsContent>
-        </Tabs>
-
-        <div className="flex min-h-0 flex-col overflow-hidden rounded-xl border bg-card p-3 shadow-xs">
-          <Player sessionId={session.id} />
-        </div>
-      </main>
+      <SessionWorkspace sessionId={session.id} />
     </div>
   );
 }
