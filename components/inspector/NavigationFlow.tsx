@@ -222,7 +222,11 @@ function VisitNode({
       <div
         className={cn(
           "rounded-lg transition-colors",
-          isSelf ? "bg-primary/5" : "hover:bg-muted/50"
+          isSelf
+            ? "bg-primary/10 ring-1 ring-inset ring-primary/20"
+            : isActive
+              ? "bg-primary/5 hover:bg-primary/10"
+              : "hover:bg-muted/50"
         )}
       >
         <div className="flex w-full items-start gap-1.5 px-2 py-2">
