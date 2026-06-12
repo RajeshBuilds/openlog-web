@@ -12,13 +12,13 @@ import { KIND_LABELS, formatOffset, type EventKind, type InspectorEvent } from "
 
 export const KIND_BADGE_CLASS: Record<EventKind, string> = {
   "full-snapshot": "bg-sky-100 text-sky-800 dark:bg-sky-950 dark:text-sky-300",
-  incremental: "bg-slate-100 text-slate-700 dark:bg-slate-900 dark:text-slate-300",
+  incremental: "bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-300",
   touch: "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300",
   keyboard: "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300",
   screen: "bg-violet-100 text-violet-800 dark:bg-violet-950 dark:text-violet-300",
-  log: "bg-zinc-100 text-zinc-700 dark:bg-zinc-900 dark:text-zinc-300",
+  log: "bg-zinc-200 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300",
   network: "bg-orange-100 text-orange-800 dark:bg-orange-950 dark:text-orange-300",
-  other: "bg-muted text-muted-foreground",
+  other: "bg-zinc-200 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400",
 };
 
 export interface EventRowProps {

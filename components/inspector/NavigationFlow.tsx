@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { usePlayerStore } from "@/stores/playerStore";
 
 import { KIND_BADGE_CLASS } from "./EventRow";
+import { JsonTree } from "./JsonTree";
 import {
   KIND_LABELS,
   classifyEvents,
@@ -193,6 +194,16 @@ function VisitNode({
   const isSelf = activeId === visit.id;
   const hasEvents = events.length > 0;
 
+  // Per-event JSON expansion, mirroring the inspector's expandable rows.
+  const [openEvents, setOpenEvents] = useState<Set<number>>(new Set());
+  const toggleEvent = (index: number) =>
+    setOpenEvents((prev) => {
+      const next = new Set(prev);
+      if (next.has(index)) next.delete(index);
+      else next.add(index);
+      return next;
+    });
+
   return (
     <li
       className="relative pl-7"
@@ -284,31 +295,56 @@ function VisitNode({
         </div>
 
         {isExpanded && hasEvents && (
-          <ol className="border-t border-border/60 px-2 py-1">
-            {events.map((event) => (
-              <li key={event.index}>
-                <button
-                  type="button"
-                  onClick={() => seekTo(event.offsetMs)}
-                  title="Seek player to this event"
-                  className="flex w-full items-center gap-2 rounded px-1 py-1 text-left text-xs transition-colors hover:bg-muted/70"
-                >
-                  <span className="w-14 shrink-0 font-mono tabular-nums text-muted-foreground">
-                    {formatOffset(event.offsetMs)}
-                  </span>
-                  <Badge
-                    className={cn(
-                      "w-20 shrink-0 justify-center border-transparent font-mono text-[10px] font-medium",
-                      KIND_BADGE_CLASS[event.kind]
+          <div className="border-t border-border/60 px-2 pb-2 pt-1.5">
+            <ol className="divide-y divide-border/50 overflow-hidden rounded-md border border-border/60 bg-background/60">
+              {events.map((event) => {
+                const open = openEvents.has(event.index);
+                return (
+                  <li key={event.index}>
+                    <div className="flex w-full items-stretch">
+                      <button
+                        type="button"
+                        aria-label={open ? "Collapse event JSON" : "Expand event JSON"}
+                        aria-expanded={open}
+                        onClick={() => toggleEvent(event.index)}
+                        className="flex shrink-0 items-center px-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                      >
+                        {open ? (
+                          <ChevronDownIcon className="size-3" />
+                        ) : (
+                          <ChevronRightIcon className="size-3" />
+                        )}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => seekTo(event.offsetMs)}
+                        title="Seek player to this event"
+                        className="flex min-w-0 flex-1 items-center gap-2 py-1.5 pr-2 text-left text-xs transition-colors hover:bg-muted/60"
+                      >
+                        <span className="w-12 shrink-0 font-mono tabular-nums text-muted-foreground">
+                          {formatOffset(event.offsetMs)}
+                        </span>
+                        <Badge
+                          className={cn(
+                            "w-20 shrink-0 justify-center border-transparent font-mono text-[10px] font-medium",
+                            KIND_BADGE_CLASS[event.kind]
+                          )}
+                        >
+                          {KIND_LABELS[event.kind]}
+                        </Badge>
+                        <span className="truncate text-foreground/90">{event.summary}</span>
+                      </button>
+                    </div>
+                    {open && (
+                      <div className="border-t border-border/50 bg-muted/30 px-2">
+                        <JsonTree data={event.raw} />
+                      </div>
                     )}
-                  >
-                    {KIND_LABELS[event.kind]}
-                  </Badge>
-                  <span className="truncate text-foreground/90">{event.summary}</span>
-                </button>
-              </li>
-            ))}
-          </ol>
+                  </li>
+                );
+              })}
+            </ol>
+          </div>
         )}
       </div>
 
