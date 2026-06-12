@@ -1,18 +1,25 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { RouteIcon } from "lucide-react";
+import { ChevronDownIcon, ChevronRightIcon, RouteIcon } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { usePlayerStore } from "@/stores/playerStore";
 
-import { classifyEvents, formatOffset } from "./filters";
+import { KIND_BADGE_CLASS } from "./EventRow";
+import {
+  KIND_LABELS,
+  classifyEvents,
+  formatOffset,
+  type InspectorEvent,
+} from "./filters";
 import {
   deriveNavigation,
   findActiveVisitId,
   formatDwell,
+  visitEvents,
   type ScreenVisit,
 } from "./navigation";
 
@@ -20,6 +27,7 @@ import {
  * The Navigation tab: the session's screen journey as a vertical flow.
  * Same interaction grammar as the inspector — click a screen to seek the
  * player there; the visit at the playhead highlights and follows playback.
+ * Each visit expands to the user events that took place on that screen.
  */
 export function NavigationFlow() {
   const rawEvents = usePlayerStore((s) => s.rawEvents);
@@ -27,13 +35,26 @@ export function NavigationFlow() {
   const durationMs = usePlayerStore((s) => s.durationMs);
   const isPlaying = usePlayerStore((s) => s.isPlaying);
 
-  const visits = useMemo(
-    () =>
-      rawEvents
-        ? deriveNavigation(classifyEvents(rawEvents, sessionStartTs), durationMs)
-        : [],
-    [rawEvents, sessionStartTs, durationMs]
+  const events = useMemo(
+    () => (rawEvents ? classifyEvents(rawEvents, sessionStartTs) : []),
+    [rawEvents, sessionStartTs]
   );
+  const visits = useMemo(
+    () => deriveNavigation(events, durationMs),
+    [events, durationMs]
+  );
+  // Per-visit user events, precomputed so every node can show its count.
+  const eventsByVisit = useMemo(() => {
+    const map = new Map<number, InspectorEvent[]>();
+    const walk = (vs: ScreenVisit[]) => {
+      for (const v of vs) {
+        map.set(v.id, visitEvents(events, v, durationMs));
+        walk(v.children);
+      }
+    };
+    walk(visits);
+    return map;
+  }, [events, visits, durationMs]);
 
   // Derived-id subscription, so 60fps playhead updates only re-render when
   // the active visit actually changes (same trick as the inspector list).
@@ -53,6 +74,16 @@ export function NavigationFlow() {
     }
     return names.size;
   }, [visits]);
+
+  const [expanded, setExpanded] = useState<Set<number>>(new Set());
+  const toggleExpand = useCallback((id: number) => {
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }, []);
 
   // Follow the playhead while playing, unless the user is in the list.
   const hovering = useRef(false);
@@ -84,10 +115,6 @@ export function NavigationFlow() {
     );
   }
 
-  const seekTo = (visit: ScreenVisit) => {
-    usePlayerStore.getState().controls?.seek(visit.seekMs);
-  };
-
   return (
     <div className="flex h-full min-h-0 flex-col gap-2">
       <div className="flex h-8 items-center justify-between px-0.5">
@@ -117,8 +144,12 @@ export function NavigationFlow() {
               visit={visit}
               activeId={activeId}
               durationMs={Math.max(durationMs, 1)}
+              events={eventsByVisit.get(visit.id) ?? []}
+              eventsByVisit={eventsByVisit}
+              isExpanded={expanded.has(visit.id)}
+              expanded={expanded}
+              onToggleExpand={toggleExpand}
               nodeRefs={nodeRefs.current}
-              onSeek={seekTo}
             />
           ))}
         </ol>
@@ -127,24 +158,37 @@ export function NavigationFlow() {
   );
 }
 
+function seekTo(offsetMs: number) {
+  usePlayerStore.getState().controls?.seek(offsetMs);
+}
+
 function VisitNode({
   visit,
   activeId,
   durationMs,
+  events,
+  eventsByVisit,
+  isExpanded,
+  expanded,
+  onToggleExpand,
   nodeRefs,
-  onSeek,
 }: {
   visit: ScreenVisit;
   activeId: number;
   durationMs: number;
+  events: InspectorEvent[];
+  eventsByVisit: Map<number, InspectorEvent[]>;
+  isExpanded: boolean;
+  expanded: Set<number>;
+  onToggleExpand(id: number): void;
   nodeRefs: Map<number, HTMLElement>;
-  onSeek(visit: ScreenVisit): void;
 }) {
   // A parent stays lit while one of its fragments is active — you're still
   // "inside" that activity.
   const isActive =
     activeId === visit.id || visit.children.some((c) => c.id === activeId);
   const isSelf = activeId === visit.id;
+  const hasEvents = events.length > 0;
 
   return (
     <li
@@ -161,54 +205,108 @@ function VisitNode({
           isActive ? "bg-primary ring-2 ring-primary/20" : "bg-muted-foreground/40"
         )}
       />
-      <button
-        type="button"
-        onClick={() => onSeek(visit)}
-        title="Seek player to this screen"
+      <div
         className={cn(
-          "w-full rounded-lg px-2.5 py-2 text-left transition-colors",
+          "rounded-lg transition-colors",
           isSelf ? "bg-primary/5" : "hover:bg-muted/50"
         )}
       >
-        <div className="flex items-baseline gap-2">
-          <span className="truncate text-[13px] font-medium">{visit.name}</span>
-          {visit.kind === "fragment" && (
-            <Badge
-              variant="outline"
-              className="h-4 shrink-0 px-1.5 font-mono text-[10px] font-normal text-muted-foreground"
-            >
-              fragment
-            </Badge>
-          )}
-          {visit.visitNumber > 1 && (
-            <span className="shrink-0 text-[11px] text-muted-foreground">
-              visit {visit.visitNumber}
-            </span>
-          )}
-          <span className="ml-auto shrink-0 font-mono text-[11px] tabular-nums text-muted-foreground">
-            {formatOffset(visit.enterMs)}
-          </span>
-        </div>
-        <div className="mt-1.5 flex items-center gap-2">
-          <div className="h-1 flex-1 overflow-hidden rounded-full bg-muted">
-            <div
-              className={cn(
-                "h-full rounded-full transition-colors",
-                isActive ? "bg-primary/60" : "bg-primary/25"
+        <div className="flex w-full items-center gap-1.5 px-2 py-2">
+          <button
+            type="button"
+            aria-label={isExpanded ? "Collapse screen events" : "Expand screen events"}
+            aria-expanded={isExpanded}
+            disabled={!hasEvents}
+            onClick={() => onToggleExpand(visit.id)}
+            className={cn(
+              "rounded p-0.5 transition-colors",
+              hasEvents
+                ? "text-muted-foreground hover:bg-muted hover:text-foreground"
+                : "cursor-default text-muted-foreground/30"
+            )}
+          >
+            {isExpanded ? (
+              <ChevronDownIcon className="size-3.5" />
+            ) : (
+              <ChevronRightIcon className="size-3.5" />
+            )}
+          </button>
+          <button
+            type="button"
+            onClick={() => seekTo(visit.seekMs)}
+            title="Seek player to this screen"
+            className="min-w-0 flex-1 text-left"
+          >
+            <div className="flex items-baseline gap-2">
+              <span className="truncate text-[13px] font-medium">{visit.name}</span>
+              {visit.kind === "fragment" && (
+                <Badge
+                  variant="outline"
+                  className="h-4 shrink-0 px-1.5 font-mono text-[10px] font-normal text-muted-foreground"
+                >
+                  fragment
+                </Badge>
               )}
-              style={{
-                width: `${Math.max(
-                  2,
-                  ((visit.exitMs - visit.enterMs) / durationMs) * 100
-                )}%`,
-              }}
-            />
-          </div>
-          <span className="w-10 shrink-0 text-right font-mono text-[10px] tabular-nums text-muted-foreground">
-            {formatDwell(visit.exitMs - visit.enterMs)}
-          </span>
+              {visit.visitNumber > 1 && (
+                <span className="shrink-0 text-[11px] text-muted-foreground">
+                  visit {visit.visitNumber}
+                </span>
+              )}
+              <span className="ml-auto shrink-0 font-mono text-[11px] tabular-nums text-muted-foreground">
+                {formatOffset(visit.enterMs)}
+              </span>
+            </div>
+            <div className="mt-1.5 flex items-center gap-2">
+              <div className="h-1 flex-1 overflow-hidden rounded-full bg-muted">
+                <div
+                  className={cn(
+                    "h-full rounded-full transition-colors",
+                    isActive ? "bg-primary/60" : "bg-primary/25"
+                  )}
+                  style={{
+                    width: `${Math.max(
+                      2,
+                      ((visit.exitMs - visit.enterMs) / durationMs) * 100
+                    )}%`,
+                  }}
+                />
+              </div>
+              <span className="shrink-0 font-mono text-[10px] tabular-nums text-muted-foreground">
+                {formatDwell(visit.exitMs - visit.enterMs)} ·{" "}
+                {events.length} event{events.length === 1 ? "" : "s"}
+              </span>
+            </div>
+          </button>
         </div>
-      </button>
+
+        {isExpanded && hasEvents && (
+          <ol className="border-t border-border/60 px-2 py-1">
+            {events.map((event) => (
+              <li key={event.index}>
+                <button
+                  type="button"
+                  onClick={() => seekTo(event.offsetMs)}
+                  title="Seek player to this event"
+                  className="flex w-full items-center gap-2 rounded px-1 py-1 text-left text-xs transition-colors hover:bg-muted/70"
+                >
+                  <span className="w-14 shrink-0 font-mono tabular-nums text-muted-foreground">
+                    {formatOffset(event.offsetMs)}
+                  </span>
+                  <Badge
+                    className={cn(
+                      "w-20 shrink-0 justify-center border-transparent font-mono text-[10px] font-medium",
+                      KIND_BADGE_CLASS[event.kind]
+                    )}
+                  >
+                    {KIND_LABELS[event.kind]}
+                  </Badge>
+                  <span className="truncate text-foreground/90">{event.summary}</span>
+                </button>
+              </li>
+            ))}
+          </ol>
+        )}
+      </div>
 
       {visit.children.length > 0 && (
         <ol className="relative ml-7 mt-1 space-y-1">
@@ -222,8 +320,12 @@ function VisitNode({
               visit={child}
               activeId={activeId}
               durationMs={durationMs}
+              events={eventsByVisit.get(child.id) ?? []}
+              eventsByVisit={eventsByVisit}
+              isExpanded={expanded.has(child.id)}
+              expanded={expanded}
+              onToggleExpand={onToggleExpand}
               nodeRefs={nodeRefs}
-              onSeek={onSeek}
             />
           ))}
         </ol>

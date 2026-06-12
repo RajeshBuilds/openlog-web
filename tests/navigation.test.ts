@@ -7,6 +7,7 @@ import {
   deriveNavigation,
   findActiveVisitId,
   formatDwell,
+  visitEvents,
 } from "../components/inspector/navigation";
 
 const RAW = readFileSync("fixtures/sample-05.ndjson", "utf8")
@@ -98,6 +99,59 @@ describe("findActiveVisitId", () => {
     if (between > host.children[0].exitMs && between < host.children[1].enterMs) {
       expect(findActiveVisitId(VISITS, between)).toBe(host.id);
     }
+  });
+});
+
+describe("visitEvents", () => {
+  const USER_KINDS = new Set(["touch", "keyboard", "log", "network"]);
+  const isScreenLog = (e: { raw: unknown }) => {
+    const raw = e.raw as { type?: number; data?: { tag?: unknown } };
+    return raw?.type === 5 && raw.data?.tag === "screen";
+  };
+
+  it("returns only user-event kinds, never the screen enter/exit logs", () => {
+    for (const v of VISITS) {
+      for (const e of visitEvents(EVENTS, v, END)) {
+        expect(USER_KINDS.has(e.kind)).toBe(true);
+        expect(isScreenLog(e)).toBe(false);
+        expect(e.offsetMs).toBeGreaterThanOrEqual(v.enterMs);
+        expect(e.offsetMs).toBeLessThanOrEqual(v.exitMs);
+      }
+    }
+  });
+
+  it("captures the login keystrokes inside the LoginActivity visit", () => {
+    const login = visitEvents(EVENTS, VISITS[1], END);
+    expect(login.some((e) => e.kind === "keyboard")).toBe(true);
+    expect(login.some((e) => e.kind === "touch")).toBe(true);
+  });
+
+  it("hands events during a fragment window to the fragment, not the host", () => {
+    const host = VISITS[3];
+    const hostEvents = visitEvents(EVENTS, host, END);
+    const fragEvents = host.children.map((c) => visitEvents(EVENTS, c, END));
+    // No host event falls inside any fragment window.
+    for (const e of hostEvents) {
+      for (const c of host.children) {
+        expect(e.offsetMs >= c.enterMs && e.offsetMs < c.exitMs).toBe(false);
+      }
+    }
+    // The fragments actually claim events, and nothing is double-counted.
+    expect(fragEvents.flat().length).toBeGreaterThan(0);
+    const all = [...hostEvents, ...fragEvents.flat()].map((e) => e.index);
+    expect(new Set(all).size).toBe(all.length);
+  });
+
+  it("a visit still open at session end keeps its closing events", () => {
+    const last = VISITS[VISITS.length - 1];
+    const lastEvents = visitEvents(EVENTS, last, END);
+    const userEventsAfterEnter = EVENTS.filter(
+      (e) =>
+        USER_KINDS.has(e.kind) && !isScreenLog(e) && e.offsetMs >= last.enterMs
+    );
+    expect(lastEvents.map((e) => e.index)).toEqual(
+      userEventsAfterEnter.map((e) => e.index)
+    );
   });
 });
 

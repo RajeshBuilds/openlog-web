@@ -1,4 +1,4 @@
-import type { InspectorEvent } from "./filters";
+import type { EventKind, InspectorEvent } from "./filters";
 
 /**
  * Navigation derivation (the "Navigation" tab): folds the session's
@@ -153,6 +153,33 @@ export function findActiveVisitId(visits: ScreenVisit[], offsetMs: number): numb
   }
   if (child && offsetMs < child.exitMs) return child.id;
   return parent.id;
+}
+
+// What "the user did on this screen": interactions and app logs. Rendering
+// internals (snapshots, mutations, meta) are replay plumbing, not actions.
+const USER_EVENT_KINDS = new Set<EventKind>(["touch", "keyboard", "log", "network"]);
+
+/**
+ * The user events that took place during a visit's window. Half-open
+ * [enter, exit) so boundary events belong to the next screen — except a
+ * visit still open at session end keeps its closing events. Events inside
+ * a fragment window belong to the fragment, not the host activity, so a
+ * host and its children partition the host's window without duplication.
+ */
+export function visitEvents(
+  events: InspectorEvent[],
+  visit: ScreenVisit,
+  sessionEndMs: number
+): InspectorEvent[] {
+  const inWindow = (v: ScreenVisit, t: number) =>
+    t >= v.enterMs && (t < v.exitMs || (t === v.exitMs && v.exitMs >= sessionEndMs));
+  return events.filter((e) => {
+    if (!USER_EVENT_KINDS.has(e.kind)) return false;
+    // The enter/exit logs ARE the visits — redundant inside them.
+    if (screenPayload(e)) return false;
+    if (!inWindow(visit, e.offsetMs)) return false;
+    return !visit.children.some((c) => inWindow(c, e.offsetMs));
+  });
 }
 
 /** "3.4s", "42s", "1:05" — dwell durations. */
