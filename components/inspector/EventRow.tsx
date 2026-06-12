@@ -41,8 +41,10 @@ export const EventRow = memo(function EventRow({
     <div
       data-active={isActive || undefined}
       className={cn(
-        "border-b border-border/60 text-xs",
-        isActive && "bg-accent"
+        "group relative border-b border-border/60 text-xs transition-colors",
+        isActive
+          ? "bg-primary/5 before:absolute before:inset-y-0 before:left-0 before:w-0.5 before:bg-primary"
+          : "hover:bg-muted/50"
       )}
     >
       <div className="flex w-full items-center gap-2 px-2 py-1.5">
@@ -51,7 +53,7 @@ export const EventRow = memo(function EventRow({
           aria-label={isExpanded ? "Collapse event JSON" : "Expand event JSON"}
           aria-expanded={isExpanded}
           onClick={() => onToggleExpand(event.index)}
-          className="rounded p-0.5 hover:bg-muted"
+          className="rounded p-0.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
         >
           {isExpanded ? (
             <ChevronDownIcon className="size-3.5" />
@@ -65,17 +67,27 @@ export const EventRow = memo(function EventRow({
           className="flex min-w-0 flex-1 items-center gap-2 text-left"
           title="Seek player to this event"
         >
-          <span className="w-14 shrink-0 font-mono tabular-nums text-muted-foreground">
+          <span
+            className={cn(
+              "w-14 shrink-0 font-mono tabular-nums",
+              isActive ? "font-medium text-foreground" : "text-muted-foreground"
+            )}
+          >
             {formatOffset(event.offsetMs)}
           </span>
-          <Badge className={cn("shrink-0 border-transparent", KIND_BADGE_CLASS[event.kind])}>
+          <Badge
+            className={cn(
+              "w-20 shrink-0 justify-center border-transparent font-mono text-[10px] font-medium",
+              KIND_BADGE_CLASS[event.kind]
+            )}
+          >
             {KIND_LABELS[event.kind]}
           </Badge>
-          <span className="truncate">{event.summary}</span>
+          <span className="truncate text-foreground/90">{event.summary}</span>
         </button>
       </div>
       {isExpanded && (
-        <div className="border-t border-border/40 bg-background/60 px-2">
+        <div className="border-t border-border/40 bg-muted/30 px-2">
           <JsonTree data={event.raw} />
         </div>
       )}

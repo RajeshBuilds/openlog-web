@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { useVirtualizer } from "@tanstack/react-virtual";
+import { SearchIcon } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -117,28 +118,34 @@ export function Inspector() {
   return (
     <div className="flex h-full min-h-0 flex-col gap-2">
       <div className="flex flex-wrap items-center gap-1.5">
-        <Input
-          value={filters.query}
-          onChange={(e) => setFilters({ query: e.target.value })}
-          placeholder="Search events…"
-          aria-label="Search events"
-          className="h-7 w-44 text-xs"
-        />
+        <div className="relative">
+          <SearchIcon className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            value={filters.query}
+            onChange={(e) => setFilters({ query: e.target.value })}
+            placeholder="Search events…"
+            aria-label="Search events"
+            className="h-7 w-44 pl-8 text-xs"
+          />
+        </div>
         {presentKinds.map((kind) => {
           const active = filters.types.includes(kind);
           return (
             <button key={kind} type="button" onClick={() => toggleKind(kind)} aria-pressed={active}>
               <Badge
                 variant={active ? "default" : "outline"}
-                className={cn("cursor-pointer select-none", !active && "text-muted-foreground")}
+                className={cn(
+                  "cursor-pointer select-none transition-colors",
+                  !active && "bg-background text-muted-foreground hover:bg-muted hover:text-foreground"
+                )}
               >
                 {KIND_LABELS[kind]}
               </Badge>
             </button>
           );
         })}
-        <span className="ml-auto text-xs text-muted-foreground">
-          {filtered.length}/{events.length}
+        <span className="ml-auto font-mono text-[11px] tabular-nums text-muted-foreground">
+          {filtered.length} / {events.length}
         </span>
       </div>
 

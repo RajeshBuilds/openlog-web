@@ -32,20 +32,26 @@ export function Controls() {
           render={
             <Button
               size="icon"
-              variant="outline"
+              variant="default"
+              className="rounded-full shadow-sm"
               disabled={!ready}
               onClick={() => controls?.togglePlay()}
               aria-label={isPlaying ? "Pause" : "Play"}
             />
           }
         >
-          {isPlaying ? <PauseIcon /> : <PlayIcon />}
+          {isPlaying ? (
+            <PauseIcon className="fill-current" />
+          ) : (
+            <PlayIcon className="fill-current" />
+          )}
         </TooltipTrigger>
         <TooltipContent>{isPlaying ? "Pause" : "Play"}</TooltipContent>
       </Tooltip>
 
-      <span className="font-mono text-xs tabular-nums text-muted-foreground">
-        {formatMs(currentTimeMs)} / {formatMs(durationMs)}
+      <span className="font-mono text-xs tabular-nums">
+        <span className="font-medium text-foreground">{formatMs(currentTimeMs)}</span>
+        <span className="text-muted-foreground"> / {formatMs(durationMs)}</span>
       </span>
 
       <div className="ml-auto flex items-center gap-2">
@@ -55,6 +61,7 @@ export function Controls() {
               <Button
                 size="sm"
                 variant={skipInactive ? "secondary" : "ghost"}
+                className={skipInactive ? "" : "text-muted-foreground"}
                 disabled={!ready}
                 onClick={() => controls?.setSkipInactive(!skipInactive)}
                 aria-pressed={skipInactive}

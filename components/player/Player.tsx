@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 
+import { LoaderCircleIcon } from "lucide-react";
+
 import "rrweb/dist/style.css";
 
 import { createPlayer, type PlayerHandle } from "@/lib/replay/createPlayer";
@@ -84,12 +86,17 @@ export function Player({ sessionId }: { sessionId: string }) {
             stretches the container the scaler measures against. */}
         <div ref={contentRef} className="absolute left-0 top-0" />
         {status !== "ready" && (
-          <div className="absolute inset-0 flex items-center justify-center text-sm text-neutral-400">
-            {status === "error"
-              ? `Could not load session: ${error}`
-              : loadProgress
-                ? `Loading blocks… ${loadProgress.loaded}/${loadProgress.total}`
-                : "Loading session…"}
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-sm text-neutral-400">
+            {status !== "error" && (
+              <LoaderCircleIcon className="size-5 animate-spin text-neutral-500" />
+            )}
+            <span>
+              {status === "error"
+                ? `Could not load session: ${error}`
+                : loadProgress
+                  ? `Loading blocks… ${loadProgress.loaded}/${loadProgress.total}`
+                  : "Loading session…"}
+            </span>
           </div>
         )}
       </div>
