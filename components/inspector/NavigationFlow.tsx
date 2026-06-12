@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ChevronDownIcon, ChevronRightIcon, RouteIcon } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { usePlayerStore } from "@/stores/playerStore";
 
@@ -211,18 +212,19 @@ function VisitNode({
           isSelf ? "bg-primary/5" : "hover:bg-muted/50"
         )}
       >
-        <div className="flex w-full items-center gap-1.5 px-2 py-2">
-          <button
+        <div className="flex w-full items-start gap-1.5 px-2 py-2">
+          <Button
             type="button"
+            variant="ghost"
+            size="icon-xs"
             aria-label={isExpanded ? "Collapse screen events" : "Expand screen events"}
             aria-expanded={isExpanded}
             disabled={!hasEvents}
             onClick={() => onToggleExpand(visit.id)}
             className={cn(
-              "rounded p-0.5 transition-colors",
-              hasEvents
-                ? "text-muted-foreground hover:bg-muted hover:text-foreground"
-                : "cursor-default text-muted-foreground/30"
+              "size-5 text-muted-foreground",
+              !hasEvents &&
+                "text-muted-foreground/30 disabled:opacity-100 hover:bg-transparent"
             )}
           >
             {isExpanded ? (
@@ -230,7 +232,7 @@ function VisitNode({
             ) : (
               <ChevronRightIcon className="size-3.5" />
             )}
-          </button>
+          </Button>
           <button
             type="button"
             onClick={() => seekTo(visit.seekMs)}
