@@ -163,7 +163,7 @@ curl -X POST "$BASE_URL/api/ingest" \
   -H "X-OpenLog-Sdk: 0.1.0" \
   -H "X-OpenLog-Batch-Seq: 1" \
   -H 'X-OpenLog-Device: {"os":"Android","osVersion":"15","model":"Pixel 9","density":2.625,"w":411,"h":923,"appVersion":"1.0.0"}'
-# → 202 {"sessionId":"1f3a2b-9c...","received":79}
+# → 202 {"sessionId":"1f3a2b-9c...","received":59}
 ```
 
 ## 4. Large-batch path — `presign` + direct PUT + `commit`

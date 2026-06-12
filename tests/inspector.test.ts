@@ -9,7 +9,7 @@ import {
   formatOffset,
 } from "../components/inspector/filters";
 
-const RAW = readFileSync("fixtures/sample-session.ndjson", "utf8")
+const RAW = readFileSync("fixtures/sample-05.ndjson", "utf8")
   .trim()
   .split("\n")
   .map((l) => JSON.parse(l));

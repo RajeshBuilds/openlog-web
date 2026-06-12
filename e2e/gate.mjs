@@ -17,7 +17,7 @@ import { chromium } from "playwright";
 
 const PORT = 3199;
 const BASE = `http://localhost:${PORT}`;
-const FIXTURE_PATH = "fixtures/sample-session.ndjson";
+const FIXTURE_PATH = "fixtures/sample-05.ndjson";
 const SESSION_ID = `e2e-gate-${Date.now()}`;
 const TOKEN = process.env.INGEST_TOKEN;
 
@@ -134,9 +134,10 @@ try {
 
   // ---- 5. It replays: play → clock advances ----
   const timeText = () => page.locator("span.tabular-nums").first().textContent();
+  const clockBeforePlay = await timeText();
   await page.getByRole("button", { name: "Play" }).click();
   await page.waitForTimeout(1500);
-  const advanced = (await timeText()) !== "0:00 / 0:18";
+  const advanced = (await timeText()) !== clockBeforePlay;
   await page.getByRole("button", { name: /Play|Pause/ }).first().click();
   step("playback advances the clock", advanced, await timeText());
 

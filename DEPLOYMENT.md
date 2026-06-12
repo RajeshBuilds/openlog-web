@@ -158,14 +158,14 @@ presigned PUT URLs expire after **10 minutes** and are bound to
 ## 6. Smoke test
 
 From the repo root (it ships a real recorded session at
-`fixtures/sample-session.ndjson`):
+`fixtures/sample-05.ndjson`):
 
 ```bash
 export BASE_URL="https://<your-deployment>.vercel.app"
 export INGEST_TOKEN="<the value you set on Vercel>"
 
 curl -i -X POST "$BASE_URL/api/ingest" \
-  --data-binary @fixtures/sample-session.ndjson \
+  --data-binary @fixtures/sample-05.ndjson \
   -H "Authorization: Bearer $INGEST_TOKEN" \
   -H "Content-Type: application/x-ndjson" \
   -H "X-OpenLog-Session-Id: smoke-test-001" \
@@ -176,11 +176,11 @@ curl -i -X POST "$BASE_URL/api/ingest" \
 ```
 
 Expected: `HTTP/2 202` with body
-`{"sessionId":"smoke-test-001","received":79}`.
+`{"sessionId":"smoke-test-001","received":59}`.
 
 Then open **`$BASE_URL/s/smoke-test-001`** in a browser: the session replays
 in the player (sign-in screen with masked `***` fields), and the inspector on
-the right lists 79 events, filterable and seekable. The session also appears
+the right lists 59 events, filterable and seekable. The session also appears
 at `$BASE_URL/`.
 
 Checks if something's off:

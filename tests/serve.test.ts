@@ -7,7 +7,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 const TOKEN = "test-serve-token";
 const IDS = ["test-serve-a", "test-serve-b", "test-serve-c"] as const;
-const FIXTURE_LINES = readFileSync("fixtures/sample-session.ndjson", "utf8").trim().split("\n");
+const FIXTURE_LINES = readFileSync("fixtures/sample-05.ndjson", "utf8").trim().split("\n");
 
 let dir: string;
 

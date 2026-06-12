@@ -7,7 +7,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 const SESSION_ID = "test-ingest-t2";
 const TOKEN = "test-ingest-token";
-const FIXTURE = readFileSync("fixtures/sample-session.ndjson", "utf8");
+const FIXTURE = readFileSync("fixtures/sample-05.ndjson", "utf8");
 const FIXTURE_EVENT_COUNT = FIXTURE.trim().split("\n").length;
 const FIXTURE_META_COUNT = FIXTURE.trim()
   .split("\n")

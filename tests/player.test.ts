@@ -11,7 +11,7 @@ import {
   transformSessionEvents,
 } from "../lib/replay/createPlayer";
 
-const RAW_EVENTS = readFileSync("fixtures/sample-session.ndjson", "utf8")
+const RAW_EVENTS = readFileSync("fixtures/sample-05.ndjson", "utf8")
   .trim()
   .split("\n")
   .map((l) => JSON.parse(l));
@@ -39,7 +39,7 @@ describe("transformSessionEvents (mobile → rrweb web)", () => {
     expect(serialized).toContain("***");
     // The transformer must never restore PII; the fixture's masked fields
     // arrive as *** and must leave as ***.
-    const maskedInFixture = (readFileSync("fixtures/sample-session.ndjson", "utf8").match(/\*\*\*/g) ?? []).length;
+    const maskedInFixture = (readFileSync("fixtures/sample-05.ndjson", "utf8").match(/\*\*\*/g) ?? []).length;
     expect((serialized.match(/\*\*\*/g) ?? []).length).toBeGreaterThanOrEqual(maskedInFixture);
   });
 
