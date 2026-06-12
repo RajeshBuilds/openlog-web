@@ -1,0 +1,24 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Session {
+  id          String    @id
+  appId       String
+  sdkVersion  String
+  device      Json
+  startedAt   DateTime
+  endedAt     DateTime?
+  durationMs  Int       @default(0)
+  eventCount  Int       @default(0)
+  screenCount Int       @default(0)
+  blobKey     String
+  createdAt   DateTime  @default(now())
+
+  @@index([startedAt(sort: Desc)])
+}
