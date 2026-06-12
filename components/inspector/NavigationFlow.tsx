@@ -87,6 +87,10 @@ export function NavigationFlow() {
     });
   }, []);
 
+  // The screen the user last clicked/expanded. Distinct from the playhead's
+  // active visit — selection persists wherever the player happens to be.
+  const [selectedId, setSelectedId] = useState<number | null>(null);
+
   // Follow the playhead while playing, unless the user is in the list.
   const hovering = useRef(false);
   const nodeRefs = useRef(new Map<number, HTMLElement>());
@@ -145,6 +149,8 @@ export function NavigationFlow() {
               key={visit.id}
               visit={visit}
               activeId={activeId}
+              selectedId={selectedId}
+              onSelect={setSelectedId}
               durationMs={Math.max(durationMs, 1)}
               events={eventsByVisit.get(visit.id) ?? []}
               eventsByVisit={eventsByVisit}
@@ -169,6 +175,8 @@ function seekTo(offsetMs: number) {
 function VisitNode({
   visit,
   activeId,
+  selectedId,
+  onSelect,
   durationMs,
   events,
   eventsByVisit,
@@ -179,6 +187,8 @@ function VisitNode({
 }: {
   visit: ScreenVisit;
   activeId: number;
+  selectedId: number | null;
+  onSelect(id: number): void;
   durationMs: number;
   events: InspectorEvent[];
   eventsByVisit: Map<number, InspectorEvent[]>;
@@ -192,6 +202,9 @@ function VisitNode({
   const isActive =
     activeId === visit.id || visit.children.some((c) => c.id === activeId);
   const isSelf = activeId === visit.id;
+  const isSelected = selectedId === visit.id;
+  // Highlight the screen the user picked, and the one at the playhead.
+  const isHighlighted = isSelected || isSelf;
   const hasEvents = events.length > 0;
 
   // Per-event JSON expansion, mirroring the inspector's expandable rows.
@@ -221,12 +234,10 @@ function VisitNode({
       />
       <div
         className={cn(
-          "rounded-lg transition-colors",
-          isSelf
-            ? "bg-primary/10 ring-1 ring-inset ring-primary/20"
-            : isActive
-              ? "bg-primary/5 hover:bg-primary/10"
-              : "hover:bg-muted/50"
+          "relative rounded-lg transition-colors",
+          isHighlighted
+            ? "bg-muted ring-1 ring-border before:absolute before:inset-y-2 before:left-0 before:w-[3px] before:rounded-full before:bg-primary"
+            : "hover:bg-muted/50"
         )}
       >
         <div className="flex w-full items-start gap-1.5 px-2 py-2">
@@ -237,7 +248,10 @@ function VisitNode({
             aria-label={isExpanded ? "Collapse screen events" : "Expand screen events"}
             aria-expanded={isExpanded}
             disabled={!hasEvents}
-            onClick={() => onToggleExpand(visit.id)}
+            onClick={() => {
+              onToggleExpand(visit.id);
+              onSelect(visit.id);
+            }}
             className={cn(
               "size-5 text-muted-foreground",
               !hasEvents &&
@@ -252,7 +266,10 @@ function VisitNode({
           </Button>
           <button
             type="button"
-            onClick={() => seekTo(visit.seekMs)}
+            onClick={() => {
+              seekTo(visit.seekMs);
+              onSelect(visit.id);
+            }}
             title="Seek player to this screen"
             className="min-w-0 flex-1 text-left"
           >
@@ -363,6 +380,8 @@ function VisitNode({
               key={child.id}
               visit={child}
               activeId={activeId}
+              selectedId={selectedId}
+              onSelect={onSelect}
               durationMs={durationMs}
               events={eventsByVisit.get(child.id) ?? []}
               eventsByVisit={eventsByVisit}
