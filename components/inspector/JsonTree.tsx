@@ -85,7 +85,7 @@ function Node({
 
 export function JsonTree({ data }: { data: unknown }) {
   return (
-    <div className="overflow-x-auto py-1 font-mono text-xs leading-5">
+    <div className="overflow-x-auto py-1.5 font-mono text-[13px] leading-6">
       <Node name={null} value={data} depth={0} />
     </div>
   );

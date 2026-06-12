@@ -88,7 +88,7 @@ export function Inspector() {
   const virtualizer = useVirtualizer({
     count: filtered.length,
     getScrollElement: () => scrollRef.current,
-    estimateSize: () => 30,
+    estimateSize: () => 36,
     overscan: 12,
   });
 
@@ -125,7 +125,7 @@ export function Inspector() {
             onChange={(e) => setFilters({ query: e.target.value })}
             placeholder="Search events…"
             aria-label="Search events"
-            className="h-7 w-44 pl-8 text-xs"
+            className="h-8 w-56 pl-8 text-[13px]"
           />
         </div>
         {presentKinds.map((kind) => {
@@ -144,7 +144,7 @@ export function Inspector() {
             </button>
           );
         })}
-        <span className="ml-auto font-mono text-[11px] tabular-nums text-muted-foreground">
+        <span className="ml-auto font-mono text-xs tabular-nums text-muted-foreground">
           {filtered.length} / {events.length}
         </span>
       </div>
@@ -157,7 +157,7 @@ export function Inspector() {
         data-testid="inspector-list"
       >
         {filtered.length === 0 ? (
-          <div className="flex h-24 items-center justify-center text-xs text-muted-foreground">
+          <div className="flex h-24 items-center justify-center text-sm text-muted-foreground">
             No events match the current filters.
           </div>
         ) : (

@@ -35,6 +35,13 @@ const BASE_REPLAYER_CONFIG = {
   UNSAFE_replayCanvas: false,
   mouseTail: false,
   useVirtualDom: false,
+  // Wireframes carry font-family only when the SDK captured one; without a
+  // default the iframe falls back to the browser serif. Match Android's
+  // platform font instead of the host page's (per the no-Tailwind-in-replay
+  // rule, this is replay content fidelity, not app styling).
+  insertStyleRules: [
+    `body { font-family: Roboto, "Helvetica Neue", Arial, sans-serif; }`,
+  ] as string[],
 } as const;
 
 /** Single mobile recording = single window. */

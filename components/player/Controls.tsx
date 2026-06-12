@@ -49,7 +49,7 @@ export function Controls() {
         <TooltipContent>{isPlaying ? "Pause" : "Play"}</TooltipContent>
       </Tooltip>
 
-      <span className="font-mono text-xs tabular-nums">
+      <span className="font-mono text-[13px] tabular-nums">
         <span className="font-medium text-foreground">{formatMs(currentTimeMs)}</span>
         <span className="text-muted-foreground"> / {formatMs(durationMs)}</span>
       </span>

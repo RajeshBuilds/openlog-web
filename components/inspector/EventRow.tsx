@@ -41,13 +41,13 @@ export const EventRow = memo(function EventRow({
     <div
       data-active={isActive || undefined}
       className={cn(
-        "group relative border-b border-border/60 text-xs transition-colors",
+        "group relative border-b border-border/60 text-[13px] transition-colors",
         isActive
           ? "bg-primary/5 before:absolute before:inset-y-0 before:left-0 before:w-0.5 before:bg-primary"
           : "hover:bg-muted/50"
       )}
     >
-      <div className="flex w-full items-center gap-2 px-2 py-1.5">
+      <div className="flex w-full items-center gap-2 px-2 py-2">
         <button
           type="button"
           aria-label={isExpanded ? "Collapse event JSON" : "Expand event JSON"}
@@ -69,7 +69,7 @@ export const EventRow = memo(function EventRow({
         >
           <span
             className={cn(
-              "w-14 shrink-0 font-mono tabular-nums",
+              "w-16 shrink-0 font-mono tabular-nums",
               isActive ? "font-medium text-foreground" : "text-muted-foreground"
             )}
           >
@@ -77,7 +77,7 @@ export const EventRow = memo(function EventRow({
           </span>
           <Badge
             className={cn(
-              "w-20 shrink-0 justify-center border-transparent font-mono text-[10px] font-medium",
+              "w-24 shrink-0 justify-center border-transparent font-mono text-[11px] font-medium",
               KIND_BADGE_CLASS[event.kind]
             )}
           >

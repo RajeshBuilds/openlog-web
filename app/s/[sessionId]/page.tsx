@@ -28,7 +28,7 @@ export default async function SessionPage({
   return (
     <div className="flex h-dvh flex-col bg-muted/40">
       <AppHeader
-        containerClassName="max-w-7xl"
+        containerClassName="max-w-none"
         right={
           <>
             {device?.model && (
@@ -73,11 +73,7 @@ export default async function SessionPage({
         </nav>
       </AppHeader>
 
-      <main className="mx-auto grid min-h-0 w-full max-w-7xl flex-1 gap-4 px-6 py-4 lg:grid-cols-[3fr_2fr]">
-        <div className="flex min-h-0 flex-col overflow-hidden rounded-xl border bg-card p-3 shadow-xs">
-          <Player sessionId={session.id} />
-        </div>
-
+      <main className="grid min-h-0 w-full flex-1 gap-4 px-6 py-4 lg:grid-cols-[2fr_3fr]">
         <Tabs
           defaultValue="events"
           className="flex min-h-0 flex-col gap-3 rounded-xl border bg-card p-3 shadow-xs"
@@ -89,6 +85,10 @@ export default async function SessionPage({
             <Inspector />
           </TabsContent>
         </Tabs>
+
+        <div className="flex min-h-0 flex-col overflow-hidden rounded-xl border bg-card p-3 shadow-xs">
+          <Player sessionId={session.id} />
+        </div>
       </main>
     </div>
   );
