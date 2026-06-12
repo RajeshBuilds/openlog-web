@@ -1,6 +1,12 @@
 import { Replayer } from "rrweb";
 
-import { EventType, type eventWithTime, type metaEvent } from "@rrweb/types";
+import {
+  EventType,
+  IncrementalSource,
+  MouseInteractions,
+  type eventWithTime,
+  type metaEvent,
+} from "@rrweb/types";
 
 import { chunkMutationSnapshot } from "./snapshotProcessing/chunk-large-mutations";
 import {
@@ -128,6 +134,32 @@ export function createPlayer(
 
   let playing = false;
 
+  // When rrweb jumps to an offset it discards everything before the latest
+  // prior full snapshot, so the touch indicator's state (the .touch-active
+  // ring) is only updated when a touch event happens to fall inside that
+  // replayed window — otherwise the pre-jump state leaks through and a
+  // stale ring lingers. Recompute it from the full event list instead.
+  const sessionStart = events[0].timestamp;
+  function syncTouchIndicator(timeOffsetMs: number): void {
+    let active = false;
+    for (const event of events) {
+      if (event.timestamp - sessionStart > timeOffsetMs) break;
+      if (event.type !== EventType.IncrementalSnapshot) continue;
+      const data = event.data as { source?: number; type?: number };
+      if (data.source !== IncrementalSource.MouseInteraction) continue;
+      if (data.type === MouseInteractions.TouchStart) {
+        active = true;
+      } else if (
+        data.type === MouseInteractions.TouchEnd ||
+        data.type === MouseInteractions.TouchCancel ||
+        data.type === MouseInteractions.MouseUp
+      ) {
+        active = false;
+      }
+    }
+    rootEl.querySelector(".replayer-mouse")?.classList.toggle("touch-active", active);
+  }
+
   return {
     replayer,
     events,
@@ -135,10 +167,12 @@ export function createPlayer(
     play(timeOffsetMs) {
       playing = true;
       replayer.play(timeOffsetMs);
+      if (timeOffsetMs !== undefined) syncTouchIndicator(timeOffsetMs);
     },
     pause(timeOffsetMs) {
       playing = false;
       replayer.pause(timeOffsetMs);
+      if (timeOffsetMs !== undefined) syncTouchIndicator(timeOffsetMs);
     },
     seek(timeOffsetMs) {
       if (timeOffsetMs < firstSnapshotOffset) {
@@ -155,6 +189,7 @@ export function createPlayer(
       } else {
         replayer.pause(target);
       }
+      syncTouchIndicator(timeOffsetMs);
     },
     isPlaying: () => playing,
     getMeta() {
