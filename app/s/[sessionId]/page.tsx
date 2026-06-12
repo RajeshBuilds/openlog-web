@@ -4,6 +4,7 @@ import { Smartphone } from "lucide-react";
 
 import { AppHeader } from "@/components/app-header";
 import { Inspector } from "@/components/inspector/Inspector";
+import { NavigationFlow } from "@/components/inspector/NavigationFlow";
 import { Player } from "@/components/player/Player";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -80,9 +81,13 @@ export default async function SessionPage({
         >
           <TabsList>
             <TabsTrigger value="events">Events</TabsTrigger>
+            <TabsTrigger value="navigation">Navigation</TabsTrigger>
           </TabsList>
           <TabsContent value="events" className="min-h-0 flex-1">
             <Inspector />
+          </TabsContent>
+          <TabsContent value="navigation" className="min-h-0 flex-1">
+            <NavigationFlow />
           </TabsContent>
         </Tabs>
 
