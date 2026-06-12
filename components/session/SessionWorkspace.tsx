@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 
 import { ListTree, Play } from "lucide-react";
+import { MotionConfig } from "motion/react";
 
 import { Inspector } from "@/components/inspector/Inspector";
 import { NavigationFlow } from "@/components/inspector/NavigationFlow";
@@ -25,12 +26,20 @@ export function SessionWorkspace({ sessionId }: { sessionId: string }) {
   // Selecting an event in the inspector seeks the (single, always-mounted)
   // player. On small screens that panel is hidden behind the toggle, so the
   // seek would be invisible — surface the replay when one is requested.
-  const revealNonce = usePlayerStore((s) => s.playerRevealNonce);
-  useEffect(() => {
-    if (revealNonce > 0) setMobileView("replay");
-  }, [revealNonce]);
+  // Subscribing (rather than reacting to a selector in an effect body) keeps
+  // the state update out of render and avoids cascading re-renders.
+  useEffect(
+    () =>
+      usePlayerStore.subscribe((state, prev) => {
+        if (state.playerRevealNonce !== prev.playerRevealNonce) {
+          setMobileView("replay");
+        }
+      }),
+    []
+  );
 
   return (
+    <MotionConfig reducedMotion="user" transition={{ duration: 0.2, ease: "easeOut" }}>
     <main className="flex min-h-0 w-full flex-1 flex-col gap-3 px-4 py-4 lg:grid lg:grid-cols-2 lg:gap-4 lg:px-6">
       <div className="flex shrink-0 gap-1 rounded-lg border bg-card p-1 lg:hidden">
         <button
@@ -91,5 +100,6 @@ export function SessionWorkspace({ sessionId }: { sessionId: string }) {
         <Player sessionId={sessionId} />
       </div>
     </main>
+    </MotionConfig>
   );
 }

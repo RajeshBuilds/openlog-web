@@ -1,8 +1,16 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  type RefObject,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
-import { ChevronDownIcon, ChevronRightIcon, RouteIcon } from "lucide-react";
+import { ChevronRightIcon, RouteIcon } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -96,7 +104,10 @@ export function NavigationFlow() {
   const nodeRefs = useRef(new Map<number, HTMLElement>());
   useEffect(() => {
     if (isPlaying && activeId >= 0 && !hovering.current) {
-      nodeRefs.current.get(activeId)?.scrollIntoView({ block: "nearest" });
+      nodeRefs.current.get(activeId)?.scrollIntoView({
+        block: "nearest",
+        behavior: "smooth",
+      });
     }
   }, [activeId, isPlaying]);
 
@@ -157,7 +168,7 @@ export function NavigationFlow() {
               isExpanded={expanded.has(visit.id)}
               expanded={expanded}
               onToggleExpand={toggleExpand}
-              nodeRefs={nodeRefs.current}
+              nodeRefs={nodeRefs}
             />
           ))}
         </ol>
@@ -195,7 +206,7 @@ function VisitNode({
   isExpanded: boolean;
   expanded: Set<number>;
   onToggleExpand(id: number): void;
-  nodeRefs: Map<number, HTMLElement>;
+  nodeRefs: RefObject<Map<number, HTMLElement>>;
 }) {
   // A parent stays lit while one of its fragments is active — you're still
   // "inside" that activity.
@@ -218,11 +229,14 @@ function VisitNode({
     });
 
   return (
-    <li
+    <motion.li
+      initial={{ opacity: 0, y: 6 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.2, ease: "easeOut" }}
       className="relative pl-7"
-      ref={(el) => {
-        if (el) nodeRefs.set(visit.id, el);
-        else nodeRefs.delete(visit.id);
+      ref={(el: HTMLLIElement | null) => {
+        if (el) nodeRefs.current.set(visit.id, el);
+        else nodeRefs.current.delete(visit.id);
       }}
     >
       <span
@@ -258,11 +272,12 @@ function VisitNode({
                 "text-muted-foreground/30 disabled:opacity-100 hover:bg-transparent"
             )}
           >
-            {isExpanded ? (
-              <ChevronDownIcon className="size-3.5" />
-            ) : (
-              <ChevronRightIcon className="size-3.5" />
-            )}
+            <ChevronRightIcon
+              className={cn(
+                "size-3.5 transition-transform duration-200",
+                isExpanded && "rotate-90"
+              )}
+            />
           </Button>
           <button
             type="button"
@@ -315,9 +330,18 @@ function VisitNode({
           </button>
         </div>
 
-        {isExpanded && hasEvents && (
-          <div className="border-t border-border/60 px-2 pb-2 pt-1.5">
-            <ol className="divide-y divide-border/50 overflow-hidden rounded-md border border-border/60 bg-background/60">
+        <AnimatePresence initial={false}>
+          {isExpanded && hasEvents && (
+            <motion.div
+              key="events"
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.22, ease: "easeOut" }}
+              className="overflow-hidden"
+            >
+              <div className="border-t border-border/60 px-2 pb-2 pt-1.5">
+                <ol className="divide-y divide-border/50 overflow-hidden rounded-md border border-border/60 bg-background/60">
               {events.map((event) => {
                 const open = openEvents.has(event.index);
                 return (
@@ -330,11 +354,12 @@ function VisitNode({
                         onClick={() => toggleEvent(event.index)}
                         className="flex shrink-0 items-center px-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                       >
-                        {open ? (
-                          <ChevronDownIcon className="size-3" />
-                        ) : (
-                          <ChevronRightIcon className="size-3" />
-                        )}
+                        <ChevronRightIcon
+                          className={cn(
+                            "size-3 transition-transform duration-200",
+                            open && "rotate-90"
+                          )}
+                        />
                       </button>
                       <button
                         type="button"
@@ -356,17 +381,29 @@ function VisitNode({
                         <span className="truncate text-foreground/90">{event.summary}</span>
                       </button>
                     </div>
-                    {open && (
-                      <div className="border-t border-border/50 bg-muted/30 px-2">
-                        <JsonTree data={event.raw} />
-                      </div>
-                    )}
+                    <AnimatePresence initial={false}>
+                      {open && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: "auto", opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.2, ease: "easeOut" }}
+                          className="overflow-hidden"
+                        >
+                          <div className="border-t border-border/50 bg-muted/30 px-2">
+                            <JsonTree data={event.raw} />
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </li>
                 );
               })}
-            </ol>
-          </div>
-        )}
+                </ol>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {visit.children.length > 0 && (
@@ -375,24 +412,24 @@ function VisitNode({
             aria-hidden
             className="absolute bottom-3 left-[11px] top-3 w-px border-l border-dashed border-border"
           />
-          {visit.children.map((child) => (
-            <VisitNode
-              key={child.id}
-              visit={child}
-              activeId={activeId}
-              selectedId={selectedId}
-              onSelect={onSelect}
-              durationMs={durationMs}
-              events={eventsByVisit.get(child.id) ?? []}
-              eventsByVisit={eventsByVisit}
-              isExpanded={expanded.has(child.id)}
-              expanded={expanded}
-              onToggleExpand={onToggleExpand}
-              nodeRefs={nodeRefs}
-            />
-          ))}
+            {visit.children.map((child) => (
+              <VisitNode
+                key={child.id}
+                visit={child}
+                activeId={activeId}
+                selectedId={selectedId}
+                onSelect={onSelect}
+                durationMs={durationMs}
+                events={eventsByVisit.get(child.id) ?? []}
+                eventsByVisit={eventsByVisit}
+                isExpanded={expanded.has(child.id)}
+                expanded={expanded}
+                onToggleExpand={onToggleExpand}
+                nodeRefs={nodeRefs}
+              />
+            ))}
         </ol>
       )}
-    </li>
+    </motion.li>
   );
 }

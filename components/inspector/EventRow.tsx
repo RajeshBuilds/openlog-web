@@ -2,7 +2,8 @@
 
 import { memo } from "react";
 
-import { ChevronDownIcon, ChevronRightIcon } from "lucide-react";
+import { ChevronRightIcon } from "lucide-react";
+import { motion } from "motion/react";
 
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -55,11 +56,12 @@ export const EventRow = memo(function EventRow({
           onClick={() => onToggleExpand(event.index)}
           className="rounded p-0.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
         >
-          {isExpanded ? (
-            <ChevronDownIcon className="size-3.5" />
-          ) : (
-            <ChevronRightIcon className="size-3.5" />
-          )}
+          <ChevronRightIcon
+            className={cn(
+              "size-3.5 transition-transform duration-200",
+              isExpanded && "rotate-90"
+            )}
+          />
         </button>
         <button
           type="button"
@@ -87,9 +89,16 @@ export const EventRow = memo(function EventRow({
         </button>
       </div>
       {isExpanded && (
-        <div className="border-t border-border/40 bg-muted/30 px-2">
-          <JsonTree data={event.raw} />
-        </div>
+        <motion.div
+          initial={{ height: 0, opacity: 0 }}
+          animate={{ height: "auto", opacity: 1 }}
+          transition={{ duration: 0.2, ease: "easeOut" }}
+          className="overflow-hidden"
+        >
+          <div className="border-t border-border/40 bg-muted/30 px-2">
+            <JsonTree data={event.raw} />
+          </div>
+        </motion.div>
       )}
     </div>
   );
