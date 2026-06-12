@@ -61,11 +61,27 @@ export function Inspector() {
     });
   }, []);
 
-  const seekTo = useCallback((event: InspectorEvent) => {
-    const store = usePlayerStore.getState();
-    store.setSelectedEventId(event.index);
-    store.controls?.seek(event.offsetMs);
-  }, []);
+  // Screen transitions arrive as a cluster (screen log → meta → full
+  // snapshot) where the snapshot lags the log by a few ms of capture
+  // latency. Clicking any row in the cluster should show the NEW screen,
+  // so the seek snaps forward over a snapshot that lands within a blink.
+  const SNAPSHOT_SNAP_MS = 150;
+  const seekTo = useCallback(
+    (event: InspectorEvent) => {
+      const store = usePlayerStore.getState();
+      store.setSelectedEventId(event.index);
+      let target = event.offsetMs;
+      for (
+        let i = event.index + 1;
+        i < events.length && events[i].offsetMs - event.offsetMs <= SNAPSHOT_SNAP_MS;
+        i++
+      ) {
+        if (events[i].kind === "full-snapshot") target = events[i].offsetMs;
+      }
+      store.controls?.seek(target);
+    },
+    [events]
+  );
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const virtualizer = useVirtualizer({

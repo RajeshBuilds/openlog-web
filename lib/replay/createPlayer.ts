@@ -142,14 +142,18 @@ export function createPlayer(
     },
     seek(timeOffsetMs) {
       if (timeOffsetMs < firstSnapshotOffset) {
-        // +1 because rrweb sync-casts only events strictly before the
-        // target offset — exactly at the offset would skip the snapshot.
         replayer.pause(firstSnapshotOffset + 1);
       }
+      // Seeking is INCLUSIVE of events at exactly the target time: rrweb
+      // sync-casts only events strictly before the offset, so without the
+      // +1, clicking an inspector row whose timestamp it shares with a
+      // following snapshot/meta event would show the state *before* that
+      // event instead of after it.
+      const target = timeOffsetMs + 1;
       if (playing) {
-        replayer.play(timeOffsetMs);
+        replayer.play(target);
       } else {
-        replayer.pause(timeOffsetMs);
+        replayer.pause(target);
       }
     },
     isPlaying: () => playing,
