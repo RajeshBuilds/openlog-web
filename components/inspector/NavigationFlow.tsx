@@ -236,7 +236,7 @@ function VisitNode({
         className={cn(
           "relative rounded-lg transition-colors",
           isHighlighted
-            ? "bg-muted/40 ring-1 ring-border before:absolute before:inset-y-2 before:left-0 before:w-[3px] before:rounded-full before:bg-primary"
+            ? "bg-muted/40 ring-1 ring-border before:absolute before:inset-y-0 before:left-0 before:w-[3px] before:rounded-l-lg before:bg-primary"
             : "hover:bg-muted/50"
         )}
       >
