@@ -51,6 +51,7 @@ export function Inspector() {
   const activeIndex = usePlayerStore((s) =>
     s.status === "ready" ? findActiveIndex(filtered, s.currentTimeMs) : -1
   );
+  const seekNonce = usePlayerStore((s) => s.seekNonce);
 
   const [expanded, setExpanded] = useState<Set<number>>(new Set());
   const toggleExpand = useCallback((index: number) => {
@@ -80,6 +81,7 @@ export function Inspector() {
         if (events[i].kind === "full-snapshot") target = events[i].offsetMs;
       }
       store.controls?.seek(target);
+      store.revealPlayer();
     },
     [events]
   );
@@ -99,6 +101,19 @@ export function Inspector() {
       virtualizer.scrollToIndex(activeIndex, { align: "center" });
     }
   }, [activeIndex, isPlaying, virtualizer]);
+
+  // Reveal the event at the playhead when the user seeks (e.g. clicking the
+  // seekbar) — even while paused, when the follow-playback effect above is
+  // dormant. Keyed on the seek nonce so it fires per seek, not on every
+  // playhead tick or filter change.
+  const lastSeekNonce = useRef(seekNonce);
+  useEffect(() => {
+    if (seekNonce === lastSeekNonce.current) return;
+    lastSeekNonce.current = seekNonce;
+    if (activeIndex >= 0 && !hovering.current) {
+      virtualizer.scrollToIndex(activeIndex, { align: "center" });
+    }
+  }, [seekNonce, activeIndex, virtualizer]);
 
   if (!rawEvents) {
     return (

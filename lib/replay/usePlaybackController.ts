@@ -75,6 +75,7 @@ export function usePlaybackController(handle: PlayerHandle | null): void {
         const at = clamp(timeOffsetMs);
         handle.seek(at);
         state.setCurrentTime(at);
+        state.notifySeek();
       },
       setSpeed(speed) {
         handle.replayer.setConfig({ speed });

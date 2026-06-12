@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { ListTree, Play } from "lucide-react";
 
@@ -9,6 +9,7 @@ import { NavigationFlow } from "@/components/inspector/NavigationFlow";
 import { Player } from "@/components/player/Player";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
+import { usePlayerStore } from "@/stores/playerStore";
 
 type MobileView = "replay" | "inspector";
 
@@ -20,6 +21,14 @@ type MobileView = "replay" | "inspector";
  */
 export function SessionWorkspace({ sessionId }: { sessionId: string }) {
   const [mobileView, setMobileView] = useState<MobileView>("replay");
+
+  // Selecting an event in the inspector seeks the (single, always-mounted)
+  // player. On small screens that panel is hidden behind the toggle, so the
+  // seek would be invisible — surface the replay when one is requested.
+  const revealNonce = usePlayerStore((s) => s.playerRevealNonce);
+  useEffect(() => {
+    if (revealNonce > 0) setMobileView("replay");
+  }, [revealNonce]);
 
   return (
     <main className="flex min-h-0 w-full flex-1 flex-col gap-3 px-4 py-4 lg:grid lg:grid-cols-2 lg:gap-4 lg:px-6">

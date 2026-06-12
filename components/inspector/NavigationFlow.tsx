@@ -160,7 +160,9 @@ export function NavigationFlow() {
 }
 
 function seekTo(offsetMs: number) {
-  usePlayerStore.getState().controls?.seek(offsetMs);
+  const store = usePlayerStore.getState();
+  store.controls?.seek(offsetMs);
+  store.revealPlayer();
 }
 
 function VisitNode({
