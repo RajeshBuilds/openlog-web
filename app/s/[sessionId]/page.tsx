@@ -73,7 +73,7 @@ export default async function SessionPage({
         </nav>
       </AppHeader>
 
-      <main className="grid min-h-0 w-full flex-1 gap-4 px-6 py-4 lg:grid-cols-[2fr_3fr]">
+      <main className="grid min-h-0 w-full flex-1 gap-4 px-6 py-4 lg:grid-cols-2">
         <Tabs
           defaultValue="events"
           className="flex min-h-0 flex-col gap-3 rounded-xl border bg-card p-3 shadow-xs"
