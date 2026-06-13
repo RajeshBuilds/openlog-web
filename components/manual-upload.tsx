@@ -88,7 +88,7 @@ export function ManualUpload() {
         </p>
       </div>
 
-      <div className="flex flex-1 flex-col p-5">
+      <div className="flex flex-1 flex-col p-5 lg:min-h-0 lg:overflow-y-auto">
         <button
           type="button"
           onClick={() => inputRef.current?.click()}
@@ -105,8 +105,9 @@ export function ManualUpload() {
           }}
           disabled={isParsing}
           className={cn(
-            "group/drop flex min-h-48 w-full flex-1 flex-col items-center justify-center gap-4 rounded-xl border border-dashed px-6 py-12 text-center transition-all duration-200",
+            "group/drop flex w-full shrink-0 flex-col items-center justify-center gap-4 rounded-xl border border-dashed px-6 text-center transition-all duration-200",
             "hover:border-primary/50 hover:bg-primary/3 focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none",
+            loaded ? "min-h-40 py-8" : "min-h-48 flex-1 py-12",
             isDragging
               ? "border-primary bg-primary/5 ring-4 ring-primary/10"
               : "border-border",
@@ -160,7 +161,7 @@ export function ManualUpload() {
         )}
 
         {loaded && (
-          <div className="mt-4 rounded-xl border bg-card p-3.5 shadow-xs">
+          <div className="mt-4 shrink-0 rounded-xl border bg-card p-3.5 shadow-xs">
             <div className="flex items-start gap-2.5">
               <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
                 <FileText className="size-4" />
@@ -206,7 +207,7 @@ export function ManualUpload() {
           </div>
         )}
 
-        <div className="mt-6 border-t pt-5">
+        <div className="mt-6 shrink-0 border-t pt-5">
           <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
             How it works
           </p>
