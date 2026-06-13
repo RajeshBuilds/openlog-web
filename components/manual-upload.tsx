@@ -6,11 +6,11 @@ import {
   AlertCircle,
   Braces,
   FileText,
+  FileUp,
   ListTree,
   LoaderCircle,
   Play,
   ShieldCheck,
-  UploadCloud,
   X,
 } from "lucide-react";
 
@@ -75,7 +75,7 @@ export function ManualUpload() {
     <section className="flex flex-col rounded-xl border bg-card shadow-xs lg:h-full">
       <div className="border-b px-4 py-3">
         <div className="flex items-center gap-2">
-          <UploadCloud className="size-4 text-muted-foreground" />
+          <FileUp className="size-4 text-muted-foreground" />
           <h2 className="text-sm font-medium">Quick preview</h2>
         </div>
         <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
@@ -103,17 +103,17 @@ export function ManualUpload() {
           }}
           disabled={isParsing}
           className={cn(
-            "flex w-full shrink-0 flex-col items-center justify-center gap-3 rounded-lg border border-dashed px-4 py-12 text-center transition-colors",
+            "flex min-h-48 w-full flex-1 flex-col items-center justify-center gap-3 rounded-lg border border-dashed px-4 py-12 text-center transition-colors",
             "hover:border-primary/40 hover:bg-primary/5 focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none",
             isDragging ? "border-primary/60 bg-primary/5" : "border-border",
             isParsing && "pointer-events-none opacity-60"
           )}
         >
-          <div className="flex size-11 items-center justify-center rounded-full bg-muted text-muted-foreground">
+          <div className="flex size-16 items-center justify-center rounded-2xl bg-muted text-muted-foreground">
             {isParsing ? (
-              <LoaderCircle className="size-5 animate-spin" />
+              <LoaderCircle className="size-8 animate-spin" />
             ) : (
-              <UploadCloud className="size-5" />
+              <FileUp className="size-8" />
             )}
           </div>
           <div className="space-y-1">
@@ -187,7 +187,7 @@ export function ManualUpload() {
           </div>
         )}
 
-        <div className="mt-auto pt-6">
+        <div className="pt-6">
           <p className="text-xs font-medium text-muted-foreground">How it works</p>
           <ul className="mt-3 space-y-3">
             <li className="flex items-start gap-2.5">
