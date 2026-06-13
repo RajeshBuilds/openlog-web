@@ -14,6 +14,7 @@ import { AnimatePresence, motion } from "motion/react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { usePlayerStore } from "@/stores/playerStore";
 
@@ -217,6 +218,8 @@ function VisitNode({
   // Highlight the screen the user picked, and the one at the playhead.
   const isHighlighted = isSelected || isSelf;
   const hasEvents = events.length > 0;
+  const dwellMs = visit.exitMs - visit.enterMs;
+  const dwellPct = Math.round((dwellMs / durationMs) * 100);
 
   // Per-event JSON expansion, mirroring the inspector's expandable rows.
   const [openEvents, setOpenEvents] = useState<Set<number>>(new Set());
@@ -307,26 +310,28 @@ function VisitNode({
                 {formatOffset(visit.enterMs)}
               </span>
             </div>
-            <div className="mt-1.5 flex items-center gap-2">
-              <div className="h-1 flex-1 overflow-hidden rounded-full bg-muted">
-                <div
-                  className={cn(
-                    "h-full rounded-full transition-colors",
-                    isActive ? "bg-primary/60" : "bg-primary/25"
-                  )}
-                  style={{
-                    width: `${Math.max(
-                      2,
-                      ((visit.exitMs - visit.enterMs) / durationMs) * 100
-                    )}%`,
-                  }}
-                />
-              </div>
-              <span className="shrink-0 font-mono text-[10px] tabular-nums text-muted-foreground">
-                {formatDwell(visit.exitMs - visit.enterMs)} ·{" "}
-                {events.length} event{events.length === 1 ? "" : "s"}
-              </span>
-            </div>
+            <Tooltip>
+              <TooltipTrigger
+                render={<div className="mt-1.5 flex items-center gap-2" />}
+              >
+                <div className="h-1 flex-1 overflow-hidden rounded-full bg-muted">
+                  <div
+                    className={cn(
+                      "h-full rounded-full transition-colors",
+                      isActive ? "bg-primary/60" : "bg-primary/25"
+                    )}
+                    style={{ width: `${Math.max(2, dwellPct)}%` }}
+                  />
+                </div>
+                <span className="shrink-0 font-mono text-[10px] tabular-nums text-muted-foreground">
+                  {formatDwell(dwellMs)} ·{" "}
+                  {events.length} event{events.length === 1 ? "" : "s"}
+                </span>
+              </TooltipTrigger>
+              <TooltipContent side="top">
+                Time on screen — {formatDwell(dwellMs)} ({dwellPct}% of the session)
+              </TooltipContent>
+            </Tooltip>
           </button>
         </div>
 
