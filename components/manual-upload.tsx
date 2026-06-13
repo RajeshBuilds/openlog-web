@@ -73,12 +73,14 @@ export function ManualUpload() {
 
   return (
     <section className="flex flex-col rounded-xl border bg-card shadow-xs lg:h-full">
-      <div className="border-b px-4 py-4">
-        <div className="flex items-center gap-2">
-          <FileUp className="size-5 text-muted-foreground" />
+      <div className="border-b px-5 py-4">
+        <div className="flex items-center gap-2.5">
+          <span className="flex size-8 items-center justify-center rounded-lg bg-primary/10 text-primary ring-1 ring-inset ring-primary/15">
+            <FileUp className="size-4" />
+          </span>
           <h2 className="text-xl font-semibold tracking-tight">Quick Preview</h2>
         </div>
-        <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+        <p className="mt-2.5 text-xs leading-relaxed text-muted-foreground">
           Inspect a recording without uploading it. The file is parsed right in
           your browser and opened in the full session player — handy for a quick
           look at an <code className="font-mono">.ndjson</code> export before it
@@ -86,7 +88,7 @@ export function ManualUpload() {
         </p>
       </div>
 
-      <div className="flex flex-1 flex-col p-4">
+      <div className="flex flex-1 flex-col p-5">
         <button
           type="button"
           onClick={() => inputRef.current?.click()}
@@ -103,25 +105,37 @@ export function ManualUpload() {
           }}
           disabled={isParsing}
           className={cn(
-            "flex min-h-48 w-full flex-1 flex-col items-center justify-center gap-3 rounded-lg border border-dashed px-4 py-12 text-center transition-colors",
-            "hover:border-primary/40 hover:bg-primary/5 focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none",
-            isDragging ? "border-primary/60 bg-primary/5" : "border-border",
-            isParsing && "pointer-events-none opacity-60"
+            "group/drop flex min-h-48 w-full flex-1 flex-col items-center justify-center gap-4 rounded-xl border border-dashed px-6 py-12 text-center transition-all duration-200",
+            "hover:border-primary/50 hover:bg-primary/3 focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none",
+            isDragging
+              ? "border-primary bg-primary/5 ring-4 ring-primary/10"
+              : "border-border",
+            isParsing && "pointer-events-none opacity-70"
           )}
         >
-          <div className="flex size-16 items-center justify-center rounded-2xl bg-muted text-muted-foreground">
+          <div
+            className={cn(
+              "flex size-16 items-center justify-center rounded-2xl border bg-linear-to-b from-background to-muted text-muted-foreground shadow-sm transition-all duration-200",
+              "group-hover/drop:-translate-y-0.5 group-hover/drop:text-foreground group-hover/drop:shadow-md",
+              isDragging && "-translate-y-0.5 border-primary/40 text-primary shadow-md"
+            )}
+          >
             {isParsing ? (
-              <LoaderCircle className="size-8 animate-spin" />
+              <LoaderCircle className="size-7 animate-spin" />
             ) : (
-              <FileUp className="size-8" />
+              <FileUp className="size-7" />
             )}
           </div>
-          <div className="space-y-1">
-            <p className="text-sm font-medium">
-              {isParsing ? "Parsing…" : "Drop File / Browse"}
+          <div className="space-y-1.5">
+            <p className="text-sm font-semibold tracking-tight">
+              {isParsing ? "Parsing…" : "Drop file or click to browse"}
             </p>
-            <p className="text-xs text-muted-foreground px-16 text-center">
-              Only accepts <code className="font-mono">.ndjson</code> exports by the OpenLog Android SDK
+            <p className="mx-auto max-w-60 text-xs leading-relaxed text-muted-foreground">
+              Only accepts{" "}
+              <code className="rounded bg-muted px-1 py-0.5 font-mono text-[11px]">
+                .ndjson
+              </code>{" "}
+              exports from the OpenLog Android SDK
             </p>
           </div>
         </button>
@@ -139,27 +153,33 @@ export function ManualUpload() {
         />
 
         {error && (
-          <div className="mt-3 flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2 text-xs text-destructive">
-            <AlertCircle className="mt-0.5 size-3.5 shrink-0" />
-            <span>{error}</span>
+          <div className="mt-4 flex items-start gap-2.5 rounded-xl border border-destructive/30 bg-destructive/5 px-3.5 py-3 text-xs text-destructive">
+            <AlertCircle className="mt-0.5 size-4 shrink-0" />
+            <span className="leading-relaxed">{error}</span>
           </div>
         )}
 
         {loaded && (
-          <div className="mt-3 rounded-lg border bg-muted/40 p-3">
-            <div className="flex items-start gap-2">
-              <FileText className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
+          <div className="mt-4 rounded-xl border bg-card p-3.5 shadow-xs">
+            <div className="flex items-start gap-2.5">
+              <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+                <FileText className="size-4" />
+              </span>
               <div className="min-w-0 flex-1">
                 <p className="truncate font-mono text-[13px] font-medium">
                   {loaded.fileName}
                 </p>
-                <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
+                <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-muted-foreground">
                   <span>
                     {loaded.stats.eventCount.toLocaleString("en-US")} events
                   </span>
+                  <span aria-hidden className="text-border">•</span>
                   <span>{formatMs(loaded.stats.durationMs)}</span>
                   {loaded.stats.screenCount > 0 && (
-                    <span>{loaded.stats.screenCount} screens</span>
+                    <>
+                      <span aria-hidden className="text-border">•</span>
+                      <span>{loaded.stats.screenCount} screens</span>
+                    </>
                   )}
                 </div>
               </div>
@@ -186,14 +206,16 @@ export function ManualUpload() {
           </div>
         )}
 
-        <div className="pt-6">
-          <p className="text-xs font-medium text-muted-foreground">How it works</p>
-          <ul className="mt-3 space-y-3">
-            <li className="flex items-start gap-2.5">
-              <span className="flex size-7 shrink-0 items-center justify-center rounded-md border bg-muted/50 text-muted-foreground">
-                <ShieldCheck className="size-3.5" />
+        <div className="mt-6 border-t pt-5">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+            How it works
+          </p>
+          <ul className="mt-3.5 space-y-3.5">
+            <li className="flex items-start gap-3">
+              <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground ring-1 ring-inset ring-border/60">
+                <ShieldCheck className="size-4" />
               </span>
-              <div className="space-y-0.5">
+              <div className="space-y-0.5 pt-0.5">
                 <p className="text-[13px] font-medium">Stays on your device</p>
                 <p className="text-xs leading-relaxed text-muted-foreground">
                   The file never leaves the browser — nothing is uploaded or
@@ -201,11 +223,11 @@ export function ManualUpload() {
                 </p>
               </div>
             </li>
-            <li className="flex items-start gap-2.5">
-              <span className="flex size-7 shrink-0 items-center justify-center rounded-md border bg-muted/50 text-muted-foreground">
-                <Braces className="size-3.5" />
+            <li className="flex items-start gap-3">
+              <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground ring-1 ring-inset ring-border/60">
+                <Braces className="size-4" />
               </span>
-              <div className="space-y-0.5">
+              <div className="space-y-0.5 pt-0.5">
                 <p className="text-[13px] font-medium">SDK-native format</p>
                 <p className="text-xs leading-relaxed text-muted-foreground">
                   Reads the same rr-mobile NDJSON the OpenLog SDK posts to{" "}
@@ -213,11 +235,11 @@ export function ManualUpload() {
                 </p>
               </div>
             </li>
-            <li className="flex items-start gap-2.5">
-              <span className="flex size-7 shrink-0 items-center justify-center rounded-md border bg-muted/50 text-muted-foreground">
-                <ListTree className="size-3.5" />
+            <li className="flex items-start gap-3">
+              <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground ring-1 ring-inset ring-border/60">
+                <ListTree className="size-4" />
               </span>
-              <div className="space-y-0.5">
+              <div className="space-y-0.5 pt-0.5">
                 <p className="text-[13px] font-medium">Full player & inspector</p>
                 <p className="text-xs leading-relaxed text-muted-foreground">
                   Replay with the timeline, navigation flow, and event inspector
