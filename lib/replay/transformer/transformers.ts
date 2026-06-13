@@ -774,16 +774,20 @@ function makeLabelledInput(
 
     const orderedChildren = wireframe.inputType === 'toggle' ? [theLabel, theInputElement] : [theInputElement, theLabel]
 
-    const labelId = context.idSequence.next().value
+    // wireframe.id is placed on the <label> (the outermost element) so that
+    // incremental "update" removes correctly tear down the whole subtree.
+    // Previously wireframe.id lived on the inner <input> / <div>, meaning a
+    // remove only deleted that inner element and left a ghost <label> in the
+    // replay DOM — which prevented checked-state mutations from taking effect.
     return {
         result: {
             type: NodeType.Element,
             tagName: 'label',
             attributes: {
                 style: makeStylesString(wireframe),
-                'data-rrweb-id': labelId,
+                'data-rrweb-id': wireframe.id,
             },
-            id: labelId,
+            id: wireframe.id,
             childNodes: orderedChildren,
         },
         context,
@@ -811,6 +815,13 @@ function makeInputElement(
         return makeProgressElement(wireframe, children, context)
     }
 
+    // When this input will be wrapped in a <label>, wireframe.id is assigned to
+    // the <label> (the outermost element) so that incremental "update" removes
+    // correctly tear down the whole subtree. The inner element (<input> or the
+    // toggle <div>) therefore gets a fresh synthetic id to avoid collisions.
+    const isLabelled = 'label' in wireframe
+    const innerInputId = isLabelled ? context.idSequence.next().value : wireframe.id
+
     const theInputElement: ConversionResult<serializedNodeWithId> | null =
         wireframe.inputType === 'toggle'
             ? makeToggleElement(wireframe, context)
@@ -819,7 +830,7 @@ function makeInputElement(
                       type: NodeType.Element,
                       tagName: 'input',
                       attributes: inputAttributes(wireframe),
-                      id: wireframe.id,
+                      id: innerInputId,
                       childNodes: children,
                   },
                   context,
@@ -830,7 +841,14 @@ function makeInputElement(
     }
 
     if ('label' in wireframe) {
-        return makeLabelledInput(wireframe, theInputElement.result, theInputElement.context)
+        // For toggles, makeToggleElement still assigns wireframe.id to its outer
+        // <div>; reassign to a synthetic id here so that wireframe.id can live on
+        // the <label> wrapper instead.
+        const innerNode =
+            wireframe.inputType === 'toggle' && theInputElement.result.id === wireframe.id
+                ? { ...theInputElement.result, id: innerInputId }
+                : theInputElement.result
+        return makeLabelledInput(wireframe, innerNode, theInputElement.context)
     }
     // when labelled no styles are needed, when un-labelled as here - we add the styling in.
     ;(theInputElement.result as elementNode).attributes.style = makeStylesString(wireframe)
