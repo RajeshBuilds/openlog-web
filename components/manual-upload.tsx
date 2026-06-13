@@ -116,12 +116,12 @@ export function ManualUpload() {
               <FileUp className="size-8" />
             )}
           </div>
-          <div className="space-y-1">
+          <div className="space-y-1 px-4">
             <p className="text-sm font-medium">
-              {isParsing ? "Parsing…" : "Drop file or click to browse"}
+              {isParsing ? "Parsing…" : "Drop File or Click to Browse"}
             </p>
             <p className="text-xs text-muted-foreground">
-              Accepts <code className="font-mono">.ndjson</code> exports from the OpenLog Android SDK
+              Only accepts <code className="font-mono">.ndjson</code> exports by the OpenLog Android SDK
             </p>
           </div>
         </button>
