@@ -213,10 +213,11 @@ function VisitNode({
   // "inside" that activity.
   const isActive =
     activeId === visit.id || visit.children.some((c) => c.id === activeId);
-  const isSelf = activeId === visit.id;
-  const isSelected = selectedId === visit.id;
-  // Highlight the screen the user picked, and the one at the playhead.
-  const isHighlighted = isSelected || isSelf;
+  // Only the screen the user explicitly clicked is "selected" and gets the
+  // ring + accent bar. The playhead's screen is shown separately by the
+  // timeline dot / brighter progress bar (isActive), and expanding a node is
+  // just disclosure — neither counts as a selection.
+  const isHighlighted = selectedId === visit.id;
   const hasEvents = events.length > 0;
   const dwellMs = visit.exitMs - visit.enterMs;
   const dwellPct = Math.round((dwellMs / durationMs) * 100);
@@ -265,10 +266,7 @@ function VisitNode({
             aria-label={isExpanded ? "Collapse screen events" : "Expand screen events"}
             aria-expanded={isExpanded}
             disabled={!hasEvents}
-            onClick={() => {
-              onToggleExpand(visit.id);
-              onSelect(visit.id);
-            }}
+            onClick={() => onToggleExpand(visit.id)}
             className={cn(
               "size-5 text-muted-foreground",
               !hasEvents &&
