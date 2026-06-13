@@ -76,7 +76,7 @@ export function ManualUpload() {
       <div className="border-b px-4 py-4">
         <div className="flex items-center gap-2">
           <FileUp className="size-5 text-muted-foreground" />
-          <h2 className="text-2xl font-semibold tracking-tight">Quick Preview</h2>
+          <h2 className="text-xl font-semibold tracking-tight">Quick Preview</h2>
         </div>
         <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
           Inspect a recording without uploading it. The file is parsed right in
@@ -121,8 +121,7 @@ export function ManualUpload() {
               {isParsing ? "Parsing…" : "Drop file or click to browse"}
             </p>
             <p className="text-xs text-muted-foreground">
-              Accepts <code className="font-mono">.ndjson</code> /{" "}
-              <code className="font-mono">.jsonl</code> from the OpenLog SDK
+              Accepts <code className="font-mono">.ndjson</code> exports from the OpenLog Android SDK
             </p>
           </div>
         </button>
