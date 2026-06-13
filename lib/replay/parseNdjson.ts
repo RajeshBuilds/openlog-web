@@ -11,7 +11,7 @@ export interface NdjsonStats {
   eventCount: number;
   /** Span between the first and last event timestamp, in ms. */
   durationMs: number;
-  /** Distinct screens, counted from Meta (type 4) + screen custom events. */
+  /** Distinct screen names entered (rr-mobile `screen` custom events). */
   screenCount: number;
 }
 
@@ -57,27 +57,37 @@ export function parseNdjson(text: string): unknown[] {
 export function summarizeEvents(events: unknown[]): NdjsonStats {
   let min = Number.POSITIVE_INFINITY;
   let max = Number.NEGATIVE_INFINITY;
-  let screenCount = 0;
+  // Distinct screen names entered — mirrors the Navigation tab's notion of a
+  // screen (type 5 `screen` custom event with action "enter"), so a recording
+  // that revisits screens or re-snapshots doesn't inflate the count.
+  const screens = new Set<string>();
 
   for (const event of events) {
     const e = event as {
       type?: number;
       timestamp?: number;
-      data?: { tag?: string };
+      data?: {
+        tag?: string;
+        payload?: { action?: string; name?: string };
+      };
     };
     if (typeof e.timestamp === "number") {
       if (e.timestamp < min) min = e.timestamp;
       if (e.timestamp > max) max = e.timestamp;
     }
-    // Meta events (type 4) and "screen" custom events (type 5) mark screens.
-    if (e.type === 4 || (e.type === 5 && e.data?.tag === "screen")) {
-      screenCount += 1;
+    if (
+      e.type === 5 &&
+      e.data?.tag === "screen" &&
+      e.data.payload?.action === "enter" &&
+      e.data.payload.name
+    ) {
+      screens.add(e.data.payload.name);
     }
   }
 
   return {
     eventCount: events.length,
     durationMs: Number.isFinite(min) && Number.isFinite(max) ? max - min : 0,
-    screenCount,
+    screenCount: screens.size,
   };
 }
