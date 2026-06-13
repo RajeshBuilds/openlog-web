@@ -39,8 +39,9 @@ export default async function Home({
   });
 
   return (
-    <div className="flex min-h-screen flex-1 flex-col bg-muted/40">
+    <div className="flex min-h-dvh flex-col bg-muted/40 lg:h-dvh">
       <AppHeader
+        containerClassName="max-w-none"
         right={
           <span className="hidden text-xs text-muted-foreground sm:block">
             Android SDK · session replay
@@ -48,7 +49,7 @@ export default async function Home({
         }
       />
 
-      <main className="mx-auto w-full max-w-7xl flex-1 px-6 py-10">
+      <main className="flex w-full flex-1 flex-col px-6 py-8 lg:min-h-0">
         <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
           <div className="space-y-1">
             <h1 className="text-2xl font-semibold tracking-tight">Sessions</h1>
@@ -62,10 +63,10 @@ export default async function Home({
           </Badge>
         </div>
 
-        <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
-          <div className="min-w-0">
+        <div className="grid flex-1 gap-6 lg:min-h-0 lg:grid-cols-[3fr_1fr]">
+          <div className="flex min-w-0 flex-col gap-4 lg:min-h-0">
             {items.length === 0 ? (
-          <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-dashed bg-card px-6 py-20 text-center">
+          <div className="flex flex-1 flex-col items-center justify-center gap-3 rounded-xl border border-dashed bg-card px-6 py-20 text-center">
             <div className="flex size-11 items-center justify-center rounded-full bg-muted text-muted-foreground">
               <Inbox className="size-5" />
             </div>
@@ -81,7 +82,7 @@ export default async function Home({
             </div>
           </div>
         ) : (
-          <div className="overflow-hidden rounded-xl border bg-card shadow-xs">
+          <div className="overflow-hidden rounded-xl border bg-card shadow-xs lg:min-h-0 lg:flex-1 lg:overflow-auto">
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/50 hover:bg-muted/50">
@@ -183,7 +184,7 @@ export default async function Home({
         )}
 
         {nextCursor && (
-          <div className="mt-4 flex justify-end">
+          <div className="flex shrink-0 justify-end">
             <Button
               variant="outline"
               size="sm"
@@ -198,7 +199,7 @@ export default async function Home({
         )}
           </div>
 
-          <aside className="xl:sticky xl:top-20">
+          <aside className="lg:min-h-0 lg:overflow-auto">
             <ManualUpload />
           </aside>
         </div>
