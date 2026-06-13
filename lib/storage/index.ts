@@ -15,6 +15,12 @@ export type {
   SessionPatch,
   SessionList,
   SessionRepo,
+  SessionSortKey,
+  SessionSortDir,
+  SessionFilters,
+  SessionListOpts,
+  SessionPage,
+  SessionPageOpts,
 } from "./prismaRepo";
 
 /**
