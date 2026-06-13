@@ -73,10 +73,10 @@ export function ManualUpload() {
 
   return (
     <section className="flex flex-col rounded-xl border bg-card shadow-xs lg:h-full">
-      <div className="border-b px-4 py-3">
+      <div className="border-b px-4 py-4">
         <div className="flex items-center gap-2">
-          <FileUp className="size-4 text-muted-foreground" />
-          <h2 className="text-sm font-medium">Quick preview</h2>
+          <FileUp className="size-5 text-muted-foreground" />
+          <h2 className="text-2xl font-semibold tracking-tight">Quick Preview</h2>
         </div>
         <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
           Inspect a recording without uploading it. The file is parsed right in

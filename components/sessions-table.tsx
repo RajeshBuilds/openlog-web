@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
 
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -18,6 +18,11 @@ import {
 
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Table,
   TableBody,
@@ -133,9 +138,6 @@ export function SessionsTable({
   // Local draft for the filter inputs; committed to the URL after a debounce so
   // typing doesn't trigger a navigation per keystroke.
   const [draft, setDraft] = useState<Filters>(filters);
-  const [showFilters, setShowFilters] = useState(
-    () => Boolean(filters.id || filters.appId || filters.device)
-  );
 
   // Keep the draft in sync when the committed (URL) filters change out of band —
   // pagination, back/forward, etc. Adjusting state during render is React's
@@ -166,15 +168,6 @@ export function SessionsTable({
     return () => clearTimeout(t);
   }, [draft, filters, navigate]);
 
-  const filtersActive = Boolean(
-    draft.id.trim() || draft.appId.trim() || draft.device.trim()
-  );
-
-  function clearFilters() {
-    setDraft({ id: "", appId: "", device: "" });
-    navigate({ fId: undefined, fApp: undefined, fDevice: undefined });
-  }
-
   const sortState = { key: sort, dir };
 
   return (
@@ -182,10 +175,41 @@ export function SessionsTable({
       <Table>
         <TableHeader>
           <TableRow className="bg-muted/50 hover:bg-muted/50">
-            <SortHeader label="Session" sortKey="id" sort={sortState} onSort={onSort} />
-            <SortHeader label="App" sortKey="appId" sort={sortState} onSort={onSort} />
+            <SortHeader
+              label="Session"
+              sortKey="id"
+              sort={sortState}
+              onSort={onSort}
+              filter={
+                <ColumnFilter
+                  label="session"
+                  value={draft.id}
+                  onChange={(v) => setDraft((f) => ({ ...f, id: v }))}
+                />
+              }
+            />
+            <SortHeader
+              label="App"
+              sortKey="appId"
+              sort={sortState}
+              onSort={onSort}
+              filter={
+                <ColumnFilter
+                  label="app"
+                  value={draft.appId}
+                  onChange={(v) => setDraft((f) => ({ ...f, appId: v }))}
+                />
+              }
+            />
             <TableHead className="h-11 px-4 text-xs font-medium tracking-wider text-muted-foreground uppercase">
-              Device
+              <div className="flex items-center gap-1">
+                Device
+                <ColumnFilter
+                  label="device"
+                  value={draft.device}
+                  onChange={(v) => setDraft((f) => ({ ...f, device: v }))}
+                />
+              </div>
             </TableHead>
             <SortHeader
               label="Started"
@@ -214,70 +238,8 @@ export function SessionsTable({
               onSort={onSort}
               align="right"
             />
-            <TableHead className="h-11 w-10 px-4">
-              <button
-                type="button"
-                onClick={() => setShowFilters((v) => !v)}
-                aria-label="Toggle filters"
-                aria-pressed={showFilters}
-                className={cn(
-                  "relative inline-flex size-6 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
-                  (showFilters || filtersActive) && "bg-muted text-foreground"
-                )}
-              >
-                <Filter className="size-3.5" />
-                {filtersActive && (
-                  <span className="absolute -top-0.5 -right-0.5 size-1.5 rounded-full bg-primary" />
-                )}
-              </button>
-            </TableHead>
+            <TableHead className="h-11 w-10 px-4" />
           </TableRow>
-
-          {showFilters && (
-            <TableRow className="bg-muted/30 hover:bg-muted/30">
-              <TableHead className="px-4 py-2">
-                <Input
-                  value={draft.id}
-                  onChange={(e) => setDraft((f) => ({ ...f, id: e.target.value }))}
-                  placeholder="Filter session…"
-                  className="h-7 text-xs"
-                />
-              </TableHead>
-              <TableHead className="px-4 py-2">
-                <Input
-                  value={draft.appId}
-                  onChange={(e) =>
-                    setDraft((f) => ({ ...f, appId: e.target.value }))
-                  }
-                  placeholder="Filter app…"
-                  className="h-7 text-xs"
-                />
-              </TableHead>
-              <TableHead className="px-4 py-2">
-                <Input
-                  value={draft.device}
-                  onChange={(e) =>
-                    setDraft((f) => ({ ...f, device: e.target.value }))
-                  }
-                  placeholder="Filter device…"
-                  className="h-7 text-xs"
-                />
-              </TableHead>
-              <TableHead className="px-4 py-2" colSpan={4} />
-              <TableHead className="px-4 py-2">
-                {filtersActive && (
-                  <button
-                    type="button"
-                    onClick={clearFilters}
-                    aria-label="Clear filters"
-                    className="inline-flex size-6 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                  >
-                    <X className="size-3.5" />
-                  </button>
-                )}
-              </TableHead>
-            </TableRow>
-          )}
         </TableHeader>
         <TableBody>
           {items.length === 0 ? (
@@ -369,12 +331,14 @@ function SortHeader({
   sort,
   onSort,
   align = "left",
+  filter,
 }: {
   label: string;
   sortKey: SortKey;
   sort: { key: SortKey; dir: SortDir };
   onSort: (key: SortKey) => void;
   align?: "left" | "right";
+  filter?: ReactNode;
 }) {
   const active = sort.key === sortKey;
   return (
@@ -384,26 +348,83 @@ function SortHeader({
         align === "right" && "text-right"
       )}
     >
-      <button
-        type="button"
-        onClick={() => onSort(sortKey)}
+      <div
         className={cn(
-          "inline-flex items-center gap-1 tracking-wider uppercase transition-colors hover:text-foreground",
-          align === "right" && "flex-row-reverse",
+          "flex items-center gap-1",
+          align === "right" && "justify-end"
+        )}
+      >
+        <button
+          type="button"
+          onClick={() => onSort(sortKey)}
+          className={cn(
+            "inline-flex items-center gap-1 tracking-wider uppercase transition-colors hover:text-foreground",
+            align === "right" && "flex-row-reverse",
+            active && "text-foreground"
+          )}
+        >
+          {label}
+          {active ? (
+            sort.dir === "asc" ? (
+              <ArrowUp className="size-3" />
+            ) : (
+              <ArrowDown className="size-3" />
+            )
+          ) : (
+            <ChevronsUpDown className="size-3 opacity-40" />
+          )}
+        </button>
+        {filter}
+      </div>
+    </TableHead>
+  );
+}
+
+function ColumnFilter({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  const active = Boolean(value.trim());
+  return (
+    <Popover>
+      <PopoverTrigger
+        aria-label={`Filter by ${label}`}
+        className={cn(
+          "relative inline-flex size-5 shrink-0 items-center justify-center rounded text-muted-foreground transition-colors hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground",
           active && "text-foreground"
         )}
       >
-        {label}
-        {active ? (
-          sort.dir === "asc" ? (
-            <ArrowUp className="size-3" />
-          ) : (
-            <ArrowDown className="size-3" />
-          )
-        ) : (
-          <ChevronsUpDown className="size-3 opacity-40" />
+        <Filter className={cn("size-3", active && "fill-current")} />
+        {active && (
+          <span className="absolute -top-0.5 -right-0.5 size-1.5 rounded-full bg-primary" />
         )}
-      </button>
-    </TableHead>
+      </PopoverTrigger>
+      <PopoverContent align="start" className="w-56 p-2">
+        <div className="flex items-center gap-1.5">
+          <Input
+            autoFocus
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            placeholder={`Filter ${label}…`}
+            className="h-7 text-xs normal-case"
+          />
+          {active && (
+            <button
+              type="button"
+              onClick={() => onChange("")}
+              aria-label="Clear"
+              className="inline-flex size-7 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            >
+              <X className="size-3.5" />
+            </button>
+          )}
+        </div>
+      </PopoverContent>
+    </Popover>
   );
 }
