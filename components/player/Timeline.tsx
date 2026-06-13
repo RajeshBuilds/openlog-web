@@ -12,6 +12,7 @@ export function Timeline() {
   return (
     <Slider
       aria-label="Timeline"
+      className="cursor-pointer data-disabled:cursor-default"
       disabled={!ready}
       min={0}
       max={Math.max(durationMs, 1)}
