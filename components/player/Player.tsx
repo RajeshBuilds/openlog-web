@@ -19,8 +19,18 @@ import { Timeline } from "./Timeline";
  * Mounts the player core into a ref'd container, the way PostHog's
  * PlayerFrame.tsx does: an outer container that the layout sizes, and an
  * inner content div that rrweb renders into and ViewportScaler transforms.
+ *
+ * The event source is either a `sessionId` (fetched in blocks from the serve
+ * API) or an in-memory `events` array (e.g. a manually uploaded NDJSON file
+ * parsed client-side — no backend round-trip). Exactly one should be given.
  */
-export function Player({ sessionId }: { sessionId: string }) {
+export function Player({
+  sessionId,
+  events: localEvents,
+}: {
+  sessionId?: string;
+  events?: unknown[];
+}) {
   const containerRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const [handle, setHandle] = useState<PlayerHandle | null>(null);
@@ -38,9 +48,13 @@ export function Player({ sessionId }: { sessionId: string }) {
     let observer: ResizeObserver | null = null;
     let disposed = false;
 
-    loadSessionEvents(sessionId, (loaded, total) => {
-      if (!disposed) usePlayerStore.getState().setLoadProgress(loaded, total);
-    })
+    const source = localEvents
+      ? Promise.resolve(localEvents)
+      : loadSessionEvents(sessionId as string, (loaded, total) => {
+          if (!disposed) usePlayerStore.getState().setLoadProgress(loaded, total);
+        });
+
+    source
       .then((events) => {
         if (disposed || !contentRef.current || !containerRef.current) return;
         player = createPlayer(events, contentRef.current);
@@ -71,7 +85,7 @@ export function Player({ sessionId }: { sessionId: string }) {
       setHandle(null);
       usePlayerStore.getState().reset();
     };
-  }, [sessionId]);
+  }, [sessionId, localEvents]);
 
   usePlaybackController(handle);
 

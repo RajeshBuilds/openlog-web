@@ -20,7 +20,13 @@ type MobileView = "replay" | "inspector";
  * toggle switches between them. The Player is always mounted (just hidden via
  * CSS) so rrweb's iframe and playback state survive the toggle.
  */
-export function SessionWorkspace({ sessionId }: { sessionId: string }) {
+export function SessionWorkspace({
+  sessionId,
+  events,
+}: {
+  sessionId?: string;
+  events?: unknown[];
+}) {
   const [mobileView, setMobileView] = useState<MobileView>("replay");
 
   // Selecting an event in the inspector seeks the (single, always-mounted)
@@ -97,7 +103,7 @@ export function SessionWorkspace({ sessionId }: { sessionId: string }) {
           mobileView === "replay" ? "flex" : "hidden"
         )}
       >
-        <Player sessionId={sessionId} />
+        <Player sessionId={sessionId} events={events} />
       </div>
     </main>
     </MotionConfig>

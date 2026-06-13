@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ChevronRight, Inbox, Play, Smartphone } from "lucide-react";
 
 import { AppHeader } from "@/components/app-header";
+import { ManualUpload } from "@/components/manual-upload";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -47,7 +48,7 @@ export default async function Home({
         }
       />
 
-      <main className="mx-auto w-full max-w-6xl flex-1 px-6 py-10">
+      <main className="mx-auto w-full max-w-7xl flex-1 px-6 py-10">
         <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
           <div className="space-y-1">
             <h1 className="text-2xl font-semibold tracking-tight">Sessions</h1>
@@ -61,7 +62,9 @@ export default async function Home({
           </Badge>
         </div>
 
-        {items.length === 0 ? (
+        <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
+          <div className="min-w-0">
+            {items.length === 0 ? (
           <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-dashed bg-card px-6 py-20 text-center">
             <div className="flex size-11 items-center justify-center rounded-full bg-muted text-muted-foreground">
               <Inbox className="size-5" />
@@ -193,6 +196,12 @@ export default async function Home({
             </Button>
           </div>
         )}
+          </div>
+
+          <aside className="xl:sticky xl:top-20">
+            <ManualUpload />
+          </aside>
+        </div>
       </main>
     </div>
   );
